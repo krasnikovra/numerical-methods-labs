@@ -1,0 +1,183 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath} 
+\usepackage{mathtools}
+\usepackage{indentfirst} 
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1.5cm}% верхнее поле
+\geometry{bottom=3cm}% нижнее поле
+
+\begin{document}
+	% Титульный лист
+	\begin{titlepage}
+		\begin{center}
+			Санкт-Петербургский политехнический университет Петра Великого \\ Физико-механический институт \\ Высшая школа прикладной математики и вычислительной физики
+		\end{center}
+		\vspace{10em}
+		\begin{center}
+			\Large Отчет по лабораторной работе №2 \\ по дисциплине "Численные методы"
+		\end{center}
+		\vspace{1em}
+		\begin{center}
+			\Huge Решение системы линейных алгебраических уравнений методом LU-разложения
+		\end{center}
+		\vspace{15em}
+		{\Large 
+			
+			Выполнил: студент гр. 5030102/00003 Красников Р.А.
+			\vspace{1em}
+			
+			Преподаватель: Добрецова С.Б.}
+		\vspace{\fill}
+		\begin{center}
+			Санкт-Петербург \\ 2021
+		\end{center}
+	\end{titlepage}
+	\newpage
+	
+	\section{\underline{Формулировка и формализация задачи.}}
+	
+	\subsection{Формулировка задачи.}
+	
+	Решить систему линейных алгебраических уравнений (далее -- СЛАУ) методом LU-разложения.
+	
+	Вычислить норму фактической ошибки решения и норму невязки, проверить справедливость оценки относительной погрешности ошибки.
+	
+	Исследовать зависимость нормы фактической ошибки решения СЛАУ с матрицей Гильберта от размерности матрицы Гильберта и зависимость нормы невязки от размерности матрицы Гильберта.
+	
+	\subsection{Постановка задачи.}
+	
+	Даны невырожденная матрица $A=(a_{ij})\in \mathbb{R}^{nxn}$ и ненулевой вектор $b\in \mathbb{R}^n$.
+	
+	Найти вектор $x\in \mathbb{R}^n$, такой что $Ax=b$.
+	
+	\section{\underline{Алгоритм и условия его применимости.}}
+	
+	\subsection{Алгоритм решения СЛАУ методом LU-разложения.}
+	
+	\begin{enumerate}
+		\item Ввести матрицу $A=(a_{ij})\in \mathbb{R}^{nxn}$ и вектор $b=(b_1,...,b_n)^\top\in \mathbb{R}^n$.
+		\item Найти такие нижнюю унитреугольную матрицу $L=(l_{ij})\in \mathbb{R}^{nxn}$ и верхнюю треугольную матрицу $U=(u_{ij})\in \mathbb{R}^{nxn}$, что $A=LU$. Для этого 
+		для всех $m = 1,2,...,n$:
+		\begin{enumerate}
+			\item Для всех $j = m,m+1,...,n$ вычислить
+
+			\begin{equation} 
+				\label{U_formula}
+				\begin{aligned}
+					&m=1:u_{1j}=a_{1j}, \\
+					&m\neq 1: u_{mj}=a_{mj}-\sum\limits_{k=1}^{m-1}l_{mk}u_{kj}
+				\end{aligned}
+			\end{equation}
+			\item Для всех $i = m,m+1,...,n$ вычислить
+			\begin{equation}
+				\label{L_formula}
+				\begin{aligned}
+					&m=1:l_{i1}=\frac{a_{i1}}{u_{11}},\\
+					&m\neq 1:l_{im}=\frac{1}{u_{mm}}\Bigg(a_{im}-\sum\limits_{k=1}^{m-1} l_{ik}u_{km}\Bigg)
+				\end{aligned}
+			\end{equation}
+		\end{enumerate}
+		\item Найти такой вектор $y=(y_1,...,y_n)^\top \in \mathbb{R}^n$, что $Ly=b$ методом прямой подстановки, то есть для всех $i=1,2,...,n$ вычислить
+		\begin{equation}
+			\label{y_formula}
+			\begin{aligned}
+				&i=1:y_1=\frac{b_1}{l_{11}}, \\
+				&i\neq 1:y_i=\frac{1}{l_{ii}}\Bigg(b_i-\sum\limits_{j=1}^{i-1}l_{ij}y_j\Bigg)
+			\end{aligned}			
+		\end{equation}
+		\item Найти такой вектор $x=(x_1,...,x_n)^\top \in \mathbb{R}^n$, что $Ux=y$ методом обратной подстановки, то есть для всех $i=n,n-1,...,1$ вычислить
+		\begin{equation}
+			\label{x_formula}
+			\begin{aligned}
+				&i=1:x_n=\frac{y_n}{u_{nn}},\\
+				&i\neq 1:x_i=\frac{1}{u_{ii}}\Bigg(y_i-\sum\limits_{j=i+1}^{n}u_{ij}x_j\Bigg)
+			\end{aligned}
+		\end{equation}
+		Вектор $x$ - решение СЛАУ $Ax=b$.
+	\end{enumerate}
+
+	\subsection{Условия применимости метода LU-разложения.}
+	
+	\begin{enumerate}
+		\item Определитель матрицы А отличен от нуля.
+		\item Все ведущие угловые миноры матрицы A отличны от нуля.
+	\end{enumerate}
+
+	\section{\underline{Анализ задачи.}}
+	
+	Для выполнения лабораторной работы была выбрана СЛАУ с матрицей $A\in\mathbb{R}^{10x10}$:
+	\begin{equation}
+		\label{A_matrix}
+		A=
+		\begin{bmatrix}
+			2 & 7 & 5 & 36 & 17 & 38 & 92 & 43 & 87 & 53 \\
+			4 & 1 & -14 & 31 & 53 & 23 & 45 & 32 & 16 & 75 \\
+			8 & 3 & 1 & 15& 67& 51& 79& 31& 34& 64 \\
+			18 & 1 & 39 & 76 & 83 & 31 & 13 & 43 & 57 & 83 \\
+			14 & 43 & 12 & 1 & 53 & 57 & 86 & 43 & 24 & 10 \\
+			11 & 21 & 35 & 41 & 50 & 62 & 71 & 83 & 92 & 14 \\
+			91 & 83 & 74 & 61 & 57 & 49 & 35 & 22 & 14 & 90 \\
+			46 & 73 & 12 & 14 & 53 & 67 & 753 & 15 & 61 & 87 \\
+			14 & 53 & 68 & 54 & 67 & 97 & 34 & 15 & 52 & 10 \\
+			65 & 13 & 53 & 16 & 74 & 80 & 45 & 89 & 14 & 15 \\
+		\end{bmatrix}
+	\end{equation} 
+	и свободным вектором $b\in\mathbb{R}^n$:
+	\begin{equation}
+		\label{b_vector}
+		b=
+		\begin{bmatrix}
+			1 & 2 & 4 & 7 & 3 & 14 & 61 & 21 & 18 & 31
+		\end{bmatrix}
+		^\top
+	\end{equation}
+	
+	\subsection{Проверка существования и единственности решения.}
+	
+	$\det A = 1,8753\cdot 10^{17} \neq 0$ (Вычислено с помощью MATLAB). По теореме Крамера существует и единствен вектор $x\in\mathbb{R}^n:Ax=b$
+	
+	\section{\underline{Проверка условий применимости метода LU-разложения.}}
+	
+	Введем обозначения. Пусть дана матрица $K=(k_{ij})\in\mathbb{R}^{nxn}$:
+	\begin{equation*}
+		K=
+		\begin{bmatrix}
+			k_{11} & \dots & k_{1i} & \dots & k_{1n} \\
+			\vdots & \ddots & \vdots & \ddots & \vdots \\
+			k_{i1} & \dots & k_{ii} & \dots & k_{in} \\
+			\vdots & \ddots & \vdots & \ddots & \vdots \\
+			k_{n1} & \dots & k_{ni} & \dots & k_{nn}
+		\end{bmatrix}
+	\end{equation*}
+	Матрица
+	\begin{equation*}
+		K_i=
+		\begin{bmatrix}
+			k_{11} & \dots & k_{1i} \\
+			\vdots & \ddots & \vdots \\
+			k_{i1} & \dots & k_{ii} \\
+		\end{bmatrix}
+	\end{equation*}
+	называется ведущей главной подматрицей порядка $i$. Ее определитель $\det K_i$ называется ведущим $i$-ым угловым минором матрицы $K$. Для матрицы $A$ с помощью пакета MATLAB были вычислены ведущие угловые миноры:
+	\begin{equation*}
+		\begin{aligned}
+			&\det A_1 = 2,\\
+			&\det A_2 = -26,\\
+			&\det A_3 = -706,\\
+			&\det A_4 = -1,0440 \cdot 10^5,\\
+			&\det A_5 = 1,1441 \cdot 10^7,\\
+			&\det A_6 = -5,2863 \cdot 10^8, \\
+			&\det A_7 = 3,0467 \cdot 10^{11}, \\
+			&\det A_8 = 1,9349 \cdot 10^{14}, \\
+			&\det A_9 = -2,1135 \cdot 10^{16}
+		\end{aligned}
+	\end{equation*}
+	Видим, что все ведущие угловые миноры отличны от нуля -- метод LU-разложения применим.
+	
+\end{document}

@@ -46,6 +46,9 @@ int main(int* argc, const char** argv) {
     cout << "Solution is:" << endl;
     vector_print(x);
 
+    cout << "A*x is:" << endl;
+    vector_print(matrix_by_vector(A, x));
+
     //export data for matlab analysis
     matrix_print_csv("../csv/matrix.csv", A);
     vector_print_csv("../csv/vector.csv", b);

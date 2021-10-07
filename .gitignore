@@ -3,3 +3,7 @@
 **.sln
 **.vs
 csv
+*.log
+*.aux
+*.pdf
+*.synctex*
