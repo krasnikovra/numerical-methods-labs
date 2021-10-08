@@ -41,7 +41,7 @@ int main(int* argc, const char** argv) {
                    {14, 53, 68, 54, 67, 97, 34, 15, 52, 10},
                    {65, 13, 53, 16, 74, 80, 45, 89, 14, 15} };
     vector_t b = { 1, 2, 4, 7, 3, 14, 61, 21, 18, 31 };
-    
+
     vector_t x = solve_SLAU(A, b);
     cout << "Solution is:" << endl;
     vector_print(x);

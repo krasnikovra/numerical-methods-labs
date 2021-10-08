@@ -52,7 +52,7 @@
 	
 	\subsection{Постановка задачи.}
 	
-	Даны невырожденная матрица $A=(a_{ij})\in \mathbb{R}^{nxn}$ и ненулевой вектор $b\in \mathbb{R}^n$.
+	Даны невырожденная матрица $A=(a_{ij})\in \mathbb{R}^{n\times n}$ и ненулевой вектор $b\in \mathbb{R}^n$.
 	
 	Найти вектор $x\in \mathbb{R}^n$, такой что $Ax=b$.
 	
@@ -61,8 +61,8 @@
 	\subsection{Алгоритм решения СЛАУ методом LU-разложения.}
 	
 	\begin{enumerate}
-		\item Ввести матрицу $A=(a_{ij})\in \mathbb{R}^{nxn}$ и вектор $b=(b_1,...,b_n)^\top\in \mathbb{R}^n$.
-		\item Найти такие нижнюю унитреугольную матрицу $L=(l_{ij})\in \mathbb{R}^{nxn}$ и верхнюю треугольную матрицу $U=(u_{ij})\in \mathbb{R}^{nxn}$, что $A=LU$. Для этого 
+		\item Ввести матрицу $A=(a_{ij})\in \mathbb{R}^{n\times n}$ и вектор $b=(b_1,...,b_n)^\top\in \mathbb{R}^n$.
+		\item Найти такие нижнюю унитреугольную матрицу $L=(l_{ij})\in \mathbb{R}^{n\times n}$ и верхнюю треугольную матрицу $U=(u_{ij})\in \mathbb{R}^{n\times n}$, что $A=LU$. Для этого положить $U=L=0$ -- нулевая матрица и
 		для всех $m = 1,2,...,n$:
 		\begin{enumerate}
 			\item Для всех $j = m,m+1,...,n$ вычислить
@@ -87,8 +87,8 @@
 		\begin{equation}
 			\label{y_formula}
 			\begin{aligned}
-				&i=1:y_1=\frac{b_1}{l_{11}}, \\
-				&i\neq 1:y_i=\frac{1}{l_{ii}}\Bigg(b_i-\sum\limits_{j=1}^{i-1}l_{ij}y_j\Bigg)
+				&i=1:y_1=l_{11}, \\
+				&i\neq 1:y_i=b_i-\sum\limits_{j=1}^{i-1}l_{ij}y_j
 			\end{aligned}			
 		\end{equation}
 		\item Найти такой вектор $x=(x_1,...,x_n)^\top \in \mathbb{R}^n$, что $Ux=y$ методом обратной подстановки, то есть для всех $i=n,n-1,...,1$ вычислить
@@ -111,7 +111,7 @@
 
 	\section{\underline{Анализ задачи.}}
 	
-	Для выполнения лабораторной работы была выбрана СЛАУ с матрицей $A\in\mathbb{R}^{10x10}$:
+	Для выполнения лабораторной работы была выбрана СЛАУ с матрицей $A\in\mathbb{R}^{10\times10}$ и свободным вектором $b\in\mathbb{R}^{10}$:
 	\begin{equation}
 		\label{A_matrix}
 		A=
@@ -126,17 +126,12 @@
 			46 & 73 & 12 & 14 & 53 & 67 & 753 & 15 & 61 & 87 \\
 			14 & 53 & 68 & 54 & 67 & 97 & 34 & 15 & 52 & 10 \\
 			65 & 13 & 53 & 16 & 74 & 80 & 45 & 89 & 14 & 15 \\
-		\end{bmatrix}
-	\end{equation} 
-	и свободным вектором $b\in\mathbb{R}^n$:
-	\begin{equation}
-		\label{b_vector}
+		\end{bmatrix},
 		b=
 		\begin{bmatrix}
-			1 & 2 & 4 & 7 & 3 & 14 & 61 & 21 & 18 & 31
+			1 \\ 2 \\ 4 \\ 7 \\ 3 \\ 14 \\ 61 \\ 21 \\ 18 \\ 31
 		\end{bmatrix}
-		^\top
-	\end{equation}
+	\end{equation} 
 	
 	\subsection{Проверка существования и единственности решения.}
 	
@@ -144,7 +139,7 @@
 	
 	\section{\underline{Проверка условий применимости метода LU-разложения.}}
 	
-	Введем обозначения. Пусть дана матрица $K=(k_{ij})\in\mathbb{R}^{nxn}$:
+	Введем обозначения. Пусть дана матрица $K=(k_{ij})\in\mathbb{R}^{n\times n}$:
 	\begin{equation*}
 		K=
 		\begin{bmatrix}
@@ -179,5 +174,129 @@
 		\end{aligned}
 	\end{equation*}
 	Видим, что все ведущие угловые миноры отличны от нуля -- метод LU-разложения применим.
+	
+	\section{\underline{Тестовый пример.}}
+	
+	Для демонстрации идеи метода LU-разложения решим СЛАУ $Cx=d$ с матрицей $C=(c_{ij})\in\mathbb{R}^{3\times3}$ и свободным вектором $d=(d_1,...,d_n)\in\mathbb{R}^3$:
+	
+	\begin{equation*}
+		C=
+		\begin{bmatrix}
+			3 & 4 & 9 \\
+			9 & 14 & 33 \\
+			15 & 36 & 97
+		\end{bmatrix},
+		d=
+		\begin{bmatrix}
+			38 \\ 136 \\ 378
+		\end{bmatrix}
+	\end{equation*}
+
+	\begin{enumerate}
+		\item Найдем нижнюю унитреугольную матрицу $L=(l_{ij})\in\mathbb{R}^{3\times3}$ и верхнюю треугольную матрицу $U=(u_{ij})\in\mathbb{R}^{3\times3}$, такие, что $C=LU$. Для этого:
+		\begin{enumerate}
+			\item $m=1$ -- ищем первую строку матрицы $U$ и первый столбец матрицы $L$:
+			\begin{equation*}
+				\begin{aligned}
+				&j=1:u_{11}=c_{11}=3,\\
+				&j=2:u_{12}=c_{12}=4,\\
+				&j=3:u_{13}=c_{13}=9,\\
+				&i=1:l_{11}=\frac{c_{11}}{u_{11}}=\frac{3}{3}=1,\\
+				&i=2:l_{21}=\frac{c_{21}}{u_{11}}=\frac{9}{3}=3,\\
+				&i=3:l_{31}=\frac{c_{31}}{u_{11}}=\frac{15}{3}=5
+				\end{aligned}
+			\end{equation*}
+			\item $m=2$ -- ищем вторую строку матрицы $U$ и второй столбец матрицы $L$:
+			\begin{equation*}
+				\begin{aligned}
+					&j=2:u_{22}=c_{22}-l_{21}u_{12}=14-3\cdot 4=2,\\
+					&j=3:u_{23}=c_{23}-l_{21}u_{13}=33-3\cdot 9=6,\\
+					&i=2:l_{22}=\frac{c_{22}-l_{21}u_{12}}{u_{22}}=\frac{14-3\cdot 4}{2}=1,\\
+					&i=3:l_{32}=\frac{c_{32}-l_{31}u_{12}}{u_{22}}=\frac{36-5\cdot 4}{2}=8
+				\end{aligned}
+			\end{equation*}
+			\item $m=3$ ищем третью строку матрицы $U$ и третий столбец матрицы $L$: 
+			\begin{equation*}
+				\begin{aligned}
+					&j=3:u_{33}=c_{33}-l_{31}u_{13}-l_{32}u_{23}=97-5\cdot 9-8\cdot 6=4,\\
+					&i=3:l_{33}=\frac{c_{33}-l_{31}u_{13}-l_{32}u_{23}}{u_{33}}=\frac{97-5\cdot 9-8\cdot 6}{4}=1
+				\end{aligned}
+			\end{equation*}
+			Получили матрицы
+			\begin{equation*}
+				L=
+				\begin{bmatrix}
+					1 & 0 & 0\\
+					3 & 1 & 0\\
+					5 & 8 & 1
+				\end{bmatrix},
+				U=
+				\begin{bmatrix}
+					3 & 4 & 9\\
+					0 & 2 & 6\\
+					0 & 0 & 4
+				\end{bmatrix}
+			\end{equation*}
+		\end{enumerate}
+		\item Решаем СЛАУ $Ly=d$ методом прямой подстановки:
+		\begin{equation*}
+			\begin{aligned}
+				&i=1:y_1=d_1=38,\\
+				&i=2:y_2=d_2-l_{21}y_1=136-3\cdot 38=22,\\
+				&i=3:y_3=d_3-l_{31}y_1-l_{32}y_2=378-5\cdot 38-8\cdot 22=12
+			\end{aligned}
+		\end{equation*}
+		\item Решаем СЛАУ $Ux=y$ методом обратной подстановки:
+		\begin{equation*}
+			\begin{aligned}
+				&i=3:x_3=\frac{y_3}{u_{33}}=\frac{12}{4}=3,\\
+				&i=2:x_2=\frac{y_2-u_{23}x_3}{u_{22}}=\frac{22-6\cdot 3}{2}=2,\\
+				&i=1:x_1=\frac{y_1-u_{12}x_2-u_{13}x_3}{u_{11}}=\frac{38-4\cdot 2-9\cdot 3}{3}=1
+			\end{aligned}
+		\end{equation*}
+		Получили решение СЛАУ $Cx=d$: $x=(1,2,3)^\top$. Проверка:
+		\begin{equation*}
+			\begin{bmatrix}
+				3 & 4 & 9 \\
+				9 & 14 & 33 \\
+				15 & 36 & 97
+			\end{bmatrix}
+			\begin{bmatrix}
+				1 \\ 2 \\ 3
+			\end{bmatrix}
+			=
+			\begin{bmatrix}
+				38 \\ 136 \\ 378
+			\end{bmatrix}
+		\end{equation*}
+	\end{enumerate}
+
+	\section{\underline{Подготовка контрольных тестов.}}
+	
+	Программа для решения СЛАУ будет запускаться для СЛАУ $Ax=b$, где матрица $A$ и свободный вектор $b$ определены формулой (\ref{A_matrix}). Для исследования зависимости нормы фактической ошибки решения СЛАУ $H_nx = p^{(n)}$ с матрицей Гильберта $H_n\in\mathbb{R}^{n\times n}$ от размерности матрицы Гильберта и зависимости нормы невязки от размерности матрицы Гильберта свободный вектор $p^{(n)}\in\mathbb{R}^n$ определен по формуле
+	\begin{equation}
+		\label{hilbert_vector}
+		p_i^{(n)}=1-\frac{1}{i+1}, i=1,...,n
+	\end{equation}
+	
+	\section{\underline{Модульная структура программы.}}
+	Для проведения исследования была написана программа на языке C++, состоящая из следующих функций:
+	\begin{itemize}
+		\item zeros(вх.: размерность матрицы $n$, вых.: матрица $A$) -- инициализирует нулевую матрицу $A$.
+		\item vector\_add(вх.: векторы $a$ и $b$, вых.: вектор $s$) -- вычисляет сумму $s=a+b$ векторов $a$ и $b$.
+		\item vector\_div(вх.: векторы $a$ и $b$, вых.: вектор $d$) -- вычисляет разность $d=a-b$ векторов $a$ и $b$.
+		\item matrix\_by\_vector(вх.: матрица $A$, вектор $b$, вых.: вектор $m$) -- вычисляет произведение $m=Ab$ матрицы $A$ на вектор $b$.
+		\item LU\_factorization(вх.: матрица $A$, вых.: матрицы $L$ и $U$) -- вычисляет нижнюю унитреугольную матрицу $L$ и верхнюю треугольную матрицу $U$, такие, что $A=LU$.
+		\item forward\_substituion(вх.: матрица $A$, вектор $b$, вых.: вектор $x$) -- вычисляет решение $x$ СЛАУ $Ax=b$ с нижней треугольной матрицей $A$ методом прямой подстановки.
+		\item backward\_substituion(вх.: матрица $A$, вектор $b$, вых.: вектор $x$) -- вычисляет решение $x$ СЛАУ $Ax=b$ с верхней треугольной матрицей $A$ методом обратной подстановки.
+		\item solve\_SLAU(вх.: матрица $A$, вектор $b$, вых.: вектор $x$) -- вычисляет решение $x$ СЛАУ $Ax=b$ методом LU-разложения.
+		\item matrix\_print(вх.: матрица $A$) -- печатает в консоль матрицу $A$.
+		\item vector\_print(вх.: вектор $b$) -- печатает в консоль вектор $b$.
+		\item matrix\_print\_csv(вх.: имя файла \textit{filename}, матрица $A$) -- печатает в файл \textit{filename} матрицу $A$ в формате csv.
+		\item vector\_print\_csv(вх.: имя файла \textit{filename}, вектор $b$) -- печатает в файл \textit{filename} вектор $b$ в формате csv.
+		\item hilbert(вх.: размерность матрицы $n$, вых.: матрица $H_n$) -- вычисляет матрицу Гильберта $H_n$ размерности $n$.
+		\item hilbert\_vector(вх.: размерность вектора $n$, вых.: вектор $p^{(n)}$) -- вычисляет вектор $p^{(n)}$ по формуле (\ref{hilbert_vector}).
+		\item hilbert\_expetiment(вх.: имена файлов \textit{filename\_hilbert\_solutions} и \textit{filename\_hilbert\_vectors}, начальная размерность $n_0$, количество шагов увеличения размерности $s$, вых.: векторы $x^{(n)}$) -- вычисляет $s$ раз решение $x^{(i)}$ СЛАУ $H_ix=p^{(i)}$ для всех $i=n_0,n_0+1,...,n_0+s-1$ и печатает $x^{(i)}$ и $p^{(i)}$ в файлы \textit{filename\_hilbert\_solutions} и \textit{filename\_hilbert\_vectors} соответственно в формате csv.
+	\end{itemize}
 	
 \end{document}
