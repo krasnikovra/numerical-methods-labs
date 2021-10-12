@@ -29,6 +29,14 @@ matrix_t hilbert(const size_t size);
 vector_t hilbert_vector(const size_t size);
 void hilbert_expetiment(const string filename_hilbert_solutions, const string filename_hilbert_vectors, const size_t n0, const size_t steps);
 
+// For matrix condition number experiment
+matrix_t eye(const size_t size);
+matrix_t eye_plus_num(const size_t size, const double num);
+void eye_cond_num_experiment(const string filename_eye_cond_num_solutions,
+    const string filename_eye_cond_vector, const string filename_eye_cond_num_matrices,
+    const vector_t& vector, const size_t size,
+    const double num0, const size_t steps);
+
 int main(int* argc, const char** argv) {
     matrix_t A = { {2, 7, 5, 36, 17, 38, 92, 43, 87, 53},
                    {4, 1, -14, 31, 53, 23, 45, 32, 16, 75},
@@ -63,6 +71,10 @@ int main(int* argc, const char** argv) {
 
     //experiment on hilbert matrix
     hilbert_expetiment("../csv/hilbert_solutions.csv", "../csv/hilbert_vectors.csv", 1, 25);
+
+    //expetiment on eye condition number
+    eye_cond_num_experiment("../csv/eye_cond_num_solutions.csv",
+        "../csv/eye_cond_num_vector.csv", "../csv/eye_cond_num_matrices.csv", b, 10, 10, 10);
 
     return 0;
 }
@@ -283,4 +295,55 @@ void hilbert_expetiment(const string filename_hilbert_solutions, const string fi
     }
     file_sol.close();
     file_vec.close();
+}
+
+matrix_t eye(const size_t size) {
+    matrix_t eye = zeros(size);
+    for (size_t i = 0; i < size; i++)
+        eye[i][i] = 1;
+    return eye;
+}
+
+matrix_t eye_plus_num(const size_t size, const double num) {
+    matrix_t res = eye(size);
+    for (size_t i = 0; i < size; i++)
+        for (size_t j = 0; j < size; j++)
+            res[i][j] += num;
+    for (size_t i = 0; i < size; i++)
+        for (size_t j = 0; j < i; j++)
+            res[i][j] -= 1.0;
+    return res;
+}
+
+void eye_cond_num_experiment(const string filename_eye_cond_num_solutions,
+    const string filename_eye_cond_vector, const string filename_eye_cond_num_matrices,
+    const vector_t& vector, const size_t size, 
+    const double num0, const size_t steps) {
+    vector_print_csv(filename_eye_cond_vector, vector);
+    ofstream file_eye_cond_num_solutions(filename_eye_cond_num_solutions);
+    if (!file_eye_cond_num_solutions.is_open()) {
+        cerr << "File " << filename_eye_cond_num_solutions << " could not be opened!" << endl;
+        return;
+    }
+    ofstream file_eye_cond_num_matrices(filename_eye_cond_num_matrices);
+    if (!file_eye_cond_num_matrices.is_open()) {
+        cerr << "File " << filename_eye_cond_num_matrices << " could not be opened!" << endl;
+        return;
+    }
+    file_eye_cond_num_solutions.setf(ios::fixed);
+    file_eye_cond_num_matrices.setf(ios::fixed);
+    double num = num0;
+    for (size_t i = 0; i < steps; i++) {
+        matrix_t matrix = eye_plus_num(size, num);
+        vector_t x = solve_SLAU(matrix, vector);
+        for (size_t j = 0; j < size - 1; j++)
+            file_eye_cond_num_solutions << setprecision(PRECISION) << x[j] << ";";
+        file_eye_cond_num_solutions << setprecision(PRECISION) << x[size - 1] << endl;
+        for (size_t j = 0; j < size; j++) {
+            for (size_t k = 0; k < size - 1; k++)
+                file_eye_cond_num_matrices << setprecision(PRECISION) << matrix[j][k] << ";";
+            file_eye_cond_num_matrices << setprecision(PRECISION) << matrix[j][size - 1] << endl;
+        }
+        num *= 10;
+    }
 }
