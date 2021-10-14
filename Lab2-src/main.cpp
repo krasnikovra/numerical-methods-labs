@@ -87,7 +87,7 @@ int main(int* argc, const char** argv) {
   
     //experiment on 10 points
     vector_t good_and_bad_exp_vec = { 75, 91, 32, 25, 16, 51, 85, 48, 60, 102 };
-    vector_t delta_vec = { 135, 3, 531, 535, 6536, 131, 35, 3563, 35, 3342 };
+    vector_t delta_vec = { 0.135, 0.3, 0.531, 0.535, 0.6536, 0.131, 0.35, 0.3563, 0.35, 0.3342 };
     vector_t w11 = w1;
     vector_t w12 = w2;
     vector_t w21 = { 27, 23, 163, 363, 35, 351, 312, 13, 35, 31 };
@@ -170,7 +170,7 @@ void LU_factorization(const matrix_t& A, matrix_t& L, matrix_t& U) {
             for (int k = 0; k < m; k++)
                 U[m][j] -= L[m][k] * U[k][j];
         }
-        for (int i = m; i < N; i++) {
+        for (int i = m + 1; i < N; i++) {
             L[i][m] = A[i][m];
             for (int k = 0; k < m; k++)
                 L[i][m] -= L[i][k] * U[k][m];
@@ -212,7 +212,7 @@ vector_t solve_SLAU(const matrix_t& A, const vector_t& b) {
 #endif
 
     const int N = A.size();
-    matrix_t L = zeros(N);
+    matrix_t L = eye(N);
     matrix_t U = zeros(N);
     LU_factorization(A, L, U);
 
