@@ -32,6 +32,10 @@ Vector SolveSLAUWithSeidelJacobiMethod(const Matrix& A, const Vector& b, const V
 void FixedStartVectorExperiment(const string& filename, const Matrix& A, const Vector& actualSolution, const Vector& x0,
     const double eps0, const size_t steps);
 
+// 10 points
+void FixedEpsExperiment(const string& filename, const Matrix& A, const Vector& actualSolution, const double multiplier0,
+    const double steps, const double eps);
+
 int main() {
     Matrix A = {
         { 1122, 57, 315, 36, 17, 38, 92, 43, 87, 53 },
@@ -78,6 +82,8 @@ int main() {
     Print("../csv/matrix.csv", A);
 
     FixedStartVectorExperiment("../csv/accuracy_dependencies.csv", A, actualSolution, x0, 0.1, 10);
+
+    FixedEpsExperiment("../csv/x0_dependencies.csv", A, actualSolution, 10, 10, 1e-8);
 
     return 0;
 }
@@ -244,6 +250,33 @@ void FixedStartVectorExperiment(const string& filename, const Matrix& A, const V
         Vector residual = VectorSub(MatrixByVector(A, x), b);
         fileRes << eps << "; " << NormInf(error) << "; " << Norm(error) << "; " << NormInf(residual) << "; " << Norm(residual) << "; " << n << endl;
         eps /= 10;
+    }
+    fileRes.close();
+}
+
+void FixedEpsExperiment(const string& filename, const Matrix& A, const Vector& actualSolution, const double multiplier0,
+    const double steps, const double eps) {
+    ofstream fileRes(filename);
+    if (!fileRes.is_open()) {
+        cout << "Could not open " << filename << " file!" << endl;
+        return;
+    }
+    SET_STREAM_PRECISION(fileRes);
+    fileRes << "norminfsubxx0; norm2subxx0; error-inf-norm; error-2nd-norm; residual-inf-norm; residual-2nd-norm; iters" << endl;
+    Vector b = MatrixByVector(A, actualSolution);
+    double multiplier = multiplier0;
+    for (int i = 0; i < steps; i++) {
+        int n = 0;
+        Vector x0 = actualSolution;
+        for (auto& elem : x0)
+            elem += rand() / (double)RAND_MAX * 2 * multiplier - multiplier;
+        Vector initital_error = VectorSub(x0, actualSolution);
+        fileRes << NormInf(initital_error) << "; " << Norm(initital_error) << "; ";
+        Vector x = SolveSLAUWithSeidelJacobiMethod(A, b, x0, eps, n);
+        Vector error = VectorSub(x, actualSolution);
+        Vector residual = VectorSub(MatrixByVector(A, x), b);
+        fileRes << NormInf(error) << "; " << Norm(error) << "; " << NormInf(residual) << "; " << Norm(residual) << "; " << n << endl;
+        multiplier /= 10;
     }
     fileRes.close();
 }
