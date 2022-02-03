@@ -1,0 +1,207 @@
+#include <iostream>
+#include <iomanip>
+#include <fstream>
+#include <vector>
+#include <cmath>
+
+#define ROOT "../../"
+#define PRECISION 50
+#define SET_STREAM_PRECISION(stream) \
+    (stream).setf(ios::fixed); \
+    (stream) << setprecision(PRECISION)
+
+using namespace std;
+
+struct DataCell {
+	double x, y, der;
+	DataCell(double _x, double _y, double _der) : x(_x), y(_y), der(_der) {};
+};
+
+typedef vector<DataCell> Data;
+typedef vector<double> Grid;
+typedef double (*MathFunc)(double);
+
+struct HermitePoly {
+	Grid grid;
+	vector<double> polyCoefs;
+};
+
+Grid MakeUniformGrid(double a, double b, size_t n);
+Data MakeDataOutOfFunc(Grid grid, MathFunc f, MathFunc fDer);
+vector<double> EvaluateHermitePolynomialCoefficients(Data data);
+double EvaluateHermitePolynomial(double x, HermitePoly poly);
+double EvaluateMaxMidpointsError(HermitePoly poly, MathFunc f);
+double EvaluateRootPolynomial(double x, Grid grid);
+size_t Factorial(size_t n);
+double EvaluateTheoreticError(double x, MathFunc fNPlusOneDer, Grid grid);
+
+void WritePolynomialAndFunctionValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer);
+void WriteMaxMidpointErrorOnN(const char* filenameErr, double a, double b, size_t n1, size_t n2, MathFunc f, MathFunc fDer);
+void WriteTheoreticError(const char* filenameErr, size_t pointsDensity, Grid grid, MathFunc fNthDer);
+
+int main() {
+	/*
+	Data testData = {
+		{0,1,1},
+		{1,3,2},
+		{2,7,5},
+	};
+	vector<double> testCoef = EvaluateHermitePolynomialCoefficients(testData);
+	*/
+	const double a = -3.0;
+	const double b = -1.0;
+	const size_t n = 3;
+	const size_t n1 = 2;
+	const size_t n2 = 38;
+	MathFunc f = [](double x) { return 1 / tan(x) - x; };
+	MathFunc fDer = [](double x) { return -1 / (sin(x) * sin(x)) - 1; };
+	MathFunc f3thDer = [](double x) { return -2 / (sin(x) * sin(x)) * (2 / (tan(x) * tan(x)) + 1 / (sin(x) * sin(x))); };
+	Grid grid = MakeUniformGrid(a, b, n);
+	Data data = MakeDataOutOfFunc(grid, f, fDer);
+	HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
+	
+	WritePolynomialAndFunctionValues(ROOT"csv/values.csv", ROOT"csv/grids.csv", a, b, 100, { 3, 4, 5 }, f, fDer);
+	WriteMaxMidpointErrorOnN(ROOT"csv/error_on_n.csv", a, b, n1, n2, f, fDer);
+	WriteTheoreticError(ROOT"csv/error_theoretic.csv", 100, MakeUniformGrid(a, b, 3), f3thDer);
+
+	return 0;
+}
+
+Grid MakeUniformGrid(double a, double b, size_t n) {
+	Grid res;
+	for (size_t i = 0; i < n; i++)
+		res.push_back(a + (b - a) * i / (double)(n - 1));
+	return res;
+}
+
+Data MakeDataOutOfFunc(Grid grid, MathFunc f, MathFunc fDer) {
+	Data res;
+	for (auto& x : grid)
+		res.push_back(DataCell(x, f(x), fDer(x)));
+	return res;
+}
+
+vector<double> EvaluateHermitePolynomialCoefficients(Data data) {
+	vector<double> res, prevColumn, ithColumn;
+	res.push_back(data[0].y);
+	res.push_back(data[0].der);
+	for (size_t i = 0; i + 1 < data.size(); i++) {
+		prevColumn.push_back(data[i].der);
+		prevColumn.push_back((data[i + 1].y - data[i].y) / (data[i + 1].x - data[i].x));
+	}
+	prevColumn.push_back(data[data.size() - 1].der);
+	for (size_t i = 2; i < 2 * data.size(); i++) {
+		for (size_t j = 0; j + 1 < prevColumn.size(); j++) 
+			ithColumn.push_back((prevColumn[j + 1] - prevColumn[j]) / (data[(j + i) / 2].x - data[j / 2].x));
+		res.push_back(ithColumn[0]);
+		prevColumn = ithColumn;
+		ithColumn.clear();
+	}
+	return res;
+}
+
+double EvaluateHermitePolynomial(double x, HermitePoly poly) {
+	double res = 0;
+	for (size_t i = 0; i < poly.polyCoefs.size(); i++) {
+		double prod = 1;
+		for (size_t j = 0; j < i; j++)
+			prod *= x - poly.grid[j / 2];
+		res += poly.polyCoefs[i] * prod;
+	}
+	return res;
+}
+
+double EvaluateMaxMidpointsError(HermitePoly poly, MathFunc f) {
+	double res = 0;
+	for (size_t i = 0; i + 1 < poly.grid.size(); i++) {
+		double x = (poly.grid[i] + poly.grid[i + 1]) / 2.0;
+		double err = abs(EvaluateHermitePolynomial(x, poly) - f(x));
+		if (err > res)
+			res = err;
+	}
+	return res;
+}
+
+double EvaluateRootPolynomial(double x, Grid grid) {
+	double res = 1;
+	for (auto& xi : grid)
+		res *= (x - xi);
+	return res;
+}
+
+size_t Factorial(size_t n) {
+	size_t res = 1;
+	for (size_t i = 1; i <= n; i++)
+		res *= i;
+	return res;
+}
+
+double EvaluateTheoreticError(double x, MathFunc fNthDer, Grid grid) {
+	return abs(fNthDer(x) * EvaluateRootPolynomial(x, grid) / (double)Factorial(grid.size()));
+}
+
+void WritePolynomialAndFunctionValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer) {
+	ofstream fileVal(filenameVal);
+	if (!fileVal.is_open())
+		throw "Error while opening the file";
+	ofstream fileGrid(filenameGrid);
+	if (!fileGrid.is_open())
+		throw "Error while opening the file";
+	SET_STREAM_PRECISION(fileVal);
+	SET_STREAM_PRECISION(fileGrid);
+	Grid xGrid = MakeUniformGrid(a, b, pointsDensity);
+	for (auto& n : ns) {
+		fileVal << n << ";";
+		fileGrid << n << ";";
+	}
+	fileVal << endl;
+	fileGrid << endl;
+	for (auto& x : xGrid)
+		fileVal << x << ";";
+	fileVal << endl;
+	for (auto& n : ns) {
+		Grid grid = MakeUniformGrid(a, b, n);
+		for (auto& x : grid)
+			fileGrid << x << ";";
+		fileGrid << endl;
+		Data data = MakeDataOutOfFunc(grid, f, fDer);
+		HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
+		for (auto& x : xGrid)
+			fileVal << EvaluateHermitePolynomial(x, poly) << ";";
+		fileVal << endl;
+	}
+	fileVal.close();
+	fileGrid.close();
+}
+
+void WriteMaxMidpointErrorOnN(const char* filenameErr, double a, double b, size_t n1, size_t n2, MathFunc f, MathFunc fDer) {
+	ofstream fileErr(filenameErr);
+	if (!fileErr.is_open())
+		throw "Error while opening the file";
+	SET_STREAM_PRECISION(fileErr);
+	
+	for (size_t i = n1; i <= n2; i++)
+		fileErr << i << ";";
+	fileErr << endl;
+	for (size_t i = n1; i <= n2; i++) {
+		Grid grid = MakeUniformGrid(a, b, i);
+		Data data = MakeDataOutOfFunc(grid, f, fDer);
+		HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
+		fileErr << EvaluateMaxMidpointsError(poly, f) << ";";
+	}
+	fileErr << endl;
+	fileErr.close();
+}
+
+void WriteTheoreticError(const char* filenameErr, size_t pointsDensity, Grid grid, MathFunc fNthDer) {
+	ofstream fileErr(filenameErr);
+	if (!fileErr.is_open())
+		throw "Error while opening the file";
+	SET_STREAM_PRECISION(fileErr);
+	
+	fileErr << grid.size() << endl;
+	for (auto& x : MakeUniformGrid(grid[0], grid[grid.size() - 1], pointsDensity))
+		fileErr << EvaluateTheoreticError(x, fNthDer, grid) << ";";
+	fileErr << endl;
+	fileErr.close();
+}
