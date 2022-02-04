@@ -21,16 +21,10 @@ using Data = vector<DataCell>;
 using Grid = vector<double>;
 using MathFunc = double (*)(double);
 
-struct HermitePoly {
-	Grid grid;
-	vector<double> polyCoefs;
-};
-
 Grid MakeUniformGrid(double a, double b, size_t n);
 Data MakeDataOutOfFunc(Grid grid, MathFunc f, MathFunc fDer);
-vector<double> EvaluateHermitePolynomialCoefficients(Data data);
-double EvaluateHermitePolynomial(double x, HermitePoly poly);
-double EvaluateMaxMidpointsError(HermitePoly poly, MathFunc f);
+double EvaluateHermitePolynomial(double x, Data data);
+double EvaluateMaxMidpointsError(Data data, MathFunc f);
 double EvaluateRootPolynomial(double x, Grid grid);
 size_t Factorial(size_t n);
 double EvaluateTheoreticError(double x, MathFunc fNPlusOneDer, Grid grid);
@@ -79,41 +73,27 @@ Data MakeDataOutOfFunc(Grid grid, MathFunc f, MathFunc fDer) {
 	return res;
 }
 
-vector<double> EvaluateHermitePolynomialCoefficients(Data data) {
-	vector<double> res, prevColumn, ithColumn;
-	res.push_back(data[0].y);
-	res.push_back(data[0].der);
+double EvaluateHermitePolynomial(double x, Data data) {
+	double res = 0;
+	for (size_t j = 0; j < data.size(); j++) {
+		double prod = 1, sum = 0;
+		for (size_t k = 0; k < data.size(); k++) {
+			if (k == j)
+				continue;
+			prod *= (x - data[k].x) / (data[j].x - data[k].x);
+			sum += (x - data[j].x) / (data[j].x - data[k].x);
+		}
+		prod = prod * prod;
+		res += ((x - data[j].x) * data[j].der + (1 - 2 * sum) * data[j].y) * prod;
+	}
+	return res;
+}
+
+double EvaluateMaxMidpointsError(Data data, MathFunc f) {
+	double res = 0;
 	for (size_t i = 0; i + 1 < data.size(); i++) {
-		prevColumn.push_back(data[i].der);
-		prevColumn.push_back((data[i + 1].y - data[i].y) / (data[i + 1].x - data[i].x));
-	}
-	prevColumn.push_back(data[data.size() - 1].der);
-	for (size_t i = 2; i < 2 * data.size(); i++) {
-		for (size_t j = 0; j + 1 < prevColumn.size(); j++) 
-			ithColumn.push_back((prevColumn[j + 1] - prevColumn[j]) / (data[(j + i) / 2].x - data[j / 2].x));
-		res.push_back(ithColumn[0]);
-		prevColumn = ithColumn;
-		ithColumn.clear();
-	}
-	return res;
-}
-
-double EvaluateHermitePolynomial(double x, HermitePoly poly) {
-	double res = 0;
-	for (size_t i = 0; i < poly.polyCoefs.size(); i++) {
-		double prod = 1;
-		for (size_t j = 0; j < i; j++)
-			prod *= x - poly.grid[j / 2];
-		res += poly.polyCoefs[i] * prod;
-	}
-	return res;
-}
-
-double EvaluateMaxMidpointsError(HermitePoly poly, MathFunc f) {
-	double res = 0;
-	for (size_t i = 0; i + 1 < poly.grid.size(); i++) {
-		double x = (poly.grid[i] + poly.grid[i + 1]) / 2.0;
-		double err = abs(EvaluateHermitePolynomial(x, poly) - f(x));
+		double x = (data[i].x + data[i + 1].x) / 2.0;
+		double err = abs(EvaluateHermitePolynomial(x, data) - f(x));
 		if (err > res)
 			res = err;
 	}
@@ -163,9 +143,8 @@ void WritePolynomialsValues(const char* filenameVal, const char* filenameGrid, d
 			fileGrid << x << ";";
 		fileGrid << endl;
 		Data data = MakeDataOutOfFunc(grid, f, fDer);
-		HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
 		for (auto& x : xGrid)
-			fileVal << EvaluateHermitePolynomial(x, poly) << ";";
+			fileVal << EvaluateHermitePolynomial(x, data) << ";";
 		fileVal << endl;
 	}
 	fileVal.close();
@@ -184,8 +163,7 @@ void WriteMaxMidpointErrorOnN(const char* filenameErr, double a, double b, size_
 	for (size_t i = n1; i <= n2; i++) {
 		Grid grid = MakeUniformGrid(a, b, i);
 		Data data = MakeDataOutOfFunc(grid, f, fDer);
-		HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
-		fileErr << EvaluateMaxMidpointsError(poly, f) << ";";
+		fileErr << EvaluateMaxMidpointsError(data, f) << ";";
 	}
 	fileErr << endl;
 	fileErr.close();
