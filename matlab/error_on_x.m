@@ -17,8 +17,7 @@ fx = f(x);
 figure
 plot(x, abs(y1-fx), "r",...
      x, abs(y2-fx), "m",...
-     x, abs(y3-fx), "g",...
-     x, err_theor, "b--")
+     x, abs(y3-fx), "g")
 xlabel("x")
 ylabel("|P_n(x)-f(x)|")
 title(sprintf("Fact error on x for n=%d,%d,%d polynomials", n(1),n(2),n(3)))

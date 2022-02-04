@@ -17,9 +17,9 @@ struct DataCell {
 	DataCell(double _x, double _y, double _der) : x(_x), y(_y), der(_der) {};
 };
 
-typedef vector<DataCell> Data;
-typedef vector<double> Grid;
-typedef double (*MathFunc)(double);
+using Data = vector<DataCell>;
+using Grid = vector<double>;
+using MathFunc = double (*)(double);
 
 struct HermitePoly {
 	Grid grid;
@@ -35,7 +35,7 @@ double EvaluateRootPolynomial(double x, Grid grid);
 size_t Factorial(size_t n);
 double EvaluateTheoreticError(double x, MathFunc fNPlusOneDer, Grid grid);
 
-void WritePolynomialAndFunctionValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer);
+void WritePolynomialsValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer);
 void WriteMaxMidpointErrorOnN(const char* filenameErr, double a, double b, size_t n1, size_t n2, MathFunc f, MathFunc fDer);
 void WriteTheoreticError(const char* filenameErr, size_t pointsDensity, Grid grid, MathFunc fNthDer);
 
@@ -53,16 +53,14 @@ int main() {
 	const size_t n = 3;
 	const size_t n1 = 2;
 	const size_t n2 = 38;
-	MathFunc f = [](double x) { return 1 / tan(x) - x; };
-	MathFunc fDer = [](double x) { return -1 / (sin(x) * sin(x)) - 1; };
-	MathFunc f3thDer = [](double x) { return -2 / (sin(x) * sin(x)) * (2 / (tan(x) * tan(x)) + 1 / (sin(x) * sin(x))); };
-	Grid grid = MakeUniformGrid(a, b, n);
-	Data data = MakeDataOutOfFunc(grid, f, fDer);
-	HermitePoly poly = { grid, EvaluateHermitePolynomialCoefficients(data) };
+	const size_t pointsDensity = 1000;
+	const MathFunc f = [](double x) { return 1 / tan(x) - x; };
+	const MathFunc fDer = [](double x) { return -1 / (sin(x) * sin(x)) - 1; };
+	const MathFunc f3thDer = [](double x) { return -2 / (sin(x) * sin(x)) * (2 / (tan(x) * tan(x)) + 1 / (sin(x) * sin(x))); };
 	
-	WritePolynomialAndFunctionValues(ROOT"csv/values.csv", ROOT"csv/grids.csv", a, b, 100, { 3, 4, 5 }, f, fDer);
+	WritePolynomialsValues(ROOT"csv/values.csv", ROOT"csv/grids.csv", a, b, pointsDensity, { 3, 4, 5 }, f, fDer);
 	WriteMaxMidpointErrorOnN(ROOT"csv/error_on_n.csv", a, b, n1, n2, f, fDer);
-	WriteTheoreticError(ROOT"csv/error_theoretic.csv", 100, MakeUniformGrid(a, b, 3), f3thDer);
+	WriteTheoreticError(ROOT"csv/error_theoretic.csv", pointsDensity, MakeUniformGrid(a, b, 3), f3thDer);
 
 	return 0;
 }
@@ -140,7 +138,7 @@ double EvaluateTheoreticError(double x, MathFunc fNthDer, Grid grid) {
 	return abs(fNthDer(x) * EvaluateRootPolynomial(x, grid) / (double)Factorial(grid.size()));
 }
 
-void WritePolynomialAndFunctionValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer) {
+void WritePolynomialsValues(const char* filenameVal, const char* filenameGrid, double a, double b, size_t pointsDensity, vector<size_t> ns, MathFunc f, MathFunc fDer) {
 	ofstream fileVal(filenameVal);
 	if (!fileVal.is_open())
 		throw "Error while opening the file";
@@ -179,7 +177,7 @@ void WriteMaxMidpointErrorOnN(const char* filenameErr, double a, double b, size_
 	if (!fileErr.is_open())
 		throw "Error while opening the file";
 	SET_STREAM_PRECISION(fileErr);
-	
+
 	for (size_t i = n1; i <= n2; i++)
 		fileErr << i << ";";
 	fileErr << endl;
