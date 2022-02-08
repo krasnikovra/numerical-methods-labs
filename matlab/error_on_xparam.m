@@ -1,6 +1,6 @@
 f = @(x) 1./tan(x)-x;
-csvValData = readmatrix("../csv/values.csv");
-csvGridData = readmatrix("../csv/grids.csv");
+csvValData = readmatrix("../csv/valuesparam.csv");
+csvGridData = readmatrix("../csv/gridsparam.csv");
 csvErrorTheoreticData = readmatrix("../csv/error_theoretic.csv");
 err_theor = csvErrorTheoreticData(1,:);
 n = csvGridData(1,:); % look it the file
@@ -17,10 +17,9 @@ fx = f(x);
 figure
 plot(x, abs(y1-fx), "r",...
      x, abs(y2-fx), "m",...
-     x, abs(y3-fx), "g",...
-     x, err_theor, "k--")
+     x, abs(y3-fx), "g")
 xlabel("x")
 ylabel("|P_n(x)-f(x)|")
 title(sprintf("Fact error on x for n=%d,%d,%d polynomials", n(1),n(2),n(3)))
-legend(sprintf("%d points", n(1)), sprintf("%d points", n(2)),sprintf("%d points", n(3)), "theoretical 3 points")
+legend(sprintf("%d points", n(1)), sprintf("%d points", n(2)),sprintf("%d points", n(3)))
 grid on

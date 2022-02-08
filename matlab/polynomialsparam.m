@@ -1,6 +1,6 @@
 f = @(x) 1./tan(x)-x;
-csvValData = readmatrix("../csv/values.csv");
-csvGridData = readmatrix("../csv/grids.csv");
+csvValData = readmatrix("../csv/valuesparam.csv");
+csvGridData = readmatrix("../csv/gridsparam.csv");
 n = csvGridData(1,:);
 x = csvValData(1,:);
 y1 = csvValData(2,:);
