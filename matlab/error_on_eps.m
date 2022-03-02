@@ -8,4 +8,5 @@ loglog(eps, err,...
 title("Зависимость фактической ошибки от задаваемой точности")
 xlabel("Задаваемая точность \epsilon")
 ylabel("Фактическая ошибка")
+legend("Ошибка", "y=x", 'location', 'northwest')
 grid on

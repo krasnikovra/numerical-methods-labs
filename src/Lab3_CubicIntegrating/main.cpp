@@ -18,31 +18,28 @@ using MathFunc = double (*)(double);
 
 double Pow(double a, int b);
 double CubicNewtonCotesIntegral(MathFunc f, const double a, const double b, const size_t intervalsCount);
-double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps);
+double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps, size_t* q = nullptr);
 
 void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
-void WriteErrorOnN(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t n0, const size_t steps);
+void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
 void WriteErrorOnH(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t steps);
 void WriteConstApprox(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t steps);
 
 int main() {
-    const auto f = [](double x) { return 1 / tan(x) - x; };
-    const auto F = [](double x) { return log(abs(sin(x))) - x * x / 2; };
+    const auto f = [](double x) { return Pow(x, 5) - 5.2 * Pow(x, 3) + 5.5 * Pow(x, 2) - 7 * x - 3.5; };
+    const auto F = [](double x) { return Pow(x, 6) / 6 - 5.2 * Pow(x, 4) / 4 + 5.5 * Pow(x, 3) / 3 - 7 * Pow(x, 2) / 2 - 3.5 * x; };
     const double a = -3;
-    const double b = -1;
+    const double b = 0.7;
     const double eps = 0.0001;
     const double eps0 = 0.1;
     const size_t epsSteps = 12;
-    const size_t n0 = 1;
-    const size_t nSteps = 13;
-    const size_t hSteps = 13;
-    const size_t constSteps = 11;
+    const size_t hSteps = 12;
     cout << EvaluateIntegralWithRungesAccuracy(f, a, b, eps) << endl;
     try {
         WriteErrorOnEps(ROOT"csv/error_on_eps.csv", f, F, a, b, eps0, epsSteps);
-        WriteErrorOnN(ROOT"csv/error_on_n.csv", f, F, a, b, n0, nSteps);
+        WriteQOnEps(ROOT"csv/q_on_eps.csv", f, F, a, b, eps0, epsSteps);
         WriteErrorOnH(ROOT"csv/error_on_h.csv", f, F, a, b, hSteps);
-        WriteConstApprox(ROOT"csv/const_approx.csv", f, F, a, b, constSteps);
+        WriteConstApprox(ROOT"csv/const_approx.csv", f, F, a, b, hSteps);
     }
     catch (const string& err) {
         cout << "Error occured:" << endl << err << endl;
@@ -68,17 +65,21 @@ double CubicNewtonCotesIntegral(MathFunc f, const double a, const double b, cons
     return res;
 }
 
-double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps) {
+double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps, size_t* q) {
     size_t intervalsCount = 1;
+    size_t iters = 0;
     const int k = 4; // method's order
     const double coef = Pow(2, k) - 1;
     double iPrev = CubicNewtonCotesIntegral(f, a, b, intervalsCount);
     double i = iPrev;
     do {
         intervalsCount *= 2;
+        ++iters;
         iPrev = i;
         i = CubicNewtonCotesIntegral(f, a, b, intervalsCount);
     } while (abs(i - iPrev) >= eps * coef);
+    if (q != nullptr)
+        *q = iters;
     return i;
 }
 
@@ -97,17 +98,19 @@ void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const doubl
     file.close();
 }
 
-void WriteErrorOnN(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t n0, const size_t steps) {
+void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps) {
     ofstream file(filename);
     if (!file.is_open())
         throw string("File ") + filename + string(" could not be opened.");
     SET_STREAM_PRECISION(file);
-    file << "n;err" << endl;
+    file << "eps;q" << endl;
     const double exactIntegral = F(b) - F(a);
-    size_t n = n0;
+    double eps = eps0;
     for (size_t i = 0; i < steps; i++) {
-        file << i << ";" << abs(exactIntegral - CubicNewtonCotesIntegral(f, a, b, n)) << endl;
-        n *= 2;
+        size_t q = 0;
+        EvaluateIntegralWithRungesAccuracy(f, a, b, eps, &q);
+        file << eps << ";" << q << endl;
+        eps /= 10;
     }
     file.close();
 }

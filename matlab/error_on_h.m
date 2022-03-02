@@ -3,20 +3,10 @@ h = csvData(:,1);
 err = csvData(:,2);
 
 figure
-subplot(2,1,1)
-loglog(h, err)
+loglog(h, err, ...
+       h, 0.079 * h.^4, '--') % approx const is 0.079
 title("Зависимость фактической ошибки от длины отрезка разбиения")
 xlabel("h")
 ylabel("Фактическая ошибка")
-grid on
-
-csvData = readmatrix("../csv/const_approx.csv");
-h = csvData(:,1);
-err = csvData(:,2);
-
-subplot(2,1,2)
-semilogx(h, err)
-title("Вычисление константы")
-xlabel("h")
-ylabel("Фактическая ошибка / h^4")
+legend("Ошибка", "y=Ch^4, C=0.079", 'location', 'northwest')
 grid on
