@@ -9,7 +9,7 @@ loglog(h, err, ...
        h, 0.079 * h.^4, '--',... % approx const is 0.079
        h, max) 
 title("Зависимость фактической ошибки от длины отрезка разбиения")
-xlabel("h")
+xlabel("H")
 ylabel("Фактическая ошибка")
 legend("Ошибка", "y=Ch^4, C=0.079", "Максимальная ошибка", 'location', 'northwest')
 grid on

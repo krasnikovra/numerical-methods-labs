@@ -57,6 +57,10 @@ int main() {
     catch (const string& err) {
         cout << "Error occured:" << endl << err << endl;
     }
+
+    for (auto& i : vector<size_t>{ 1, 2, 4 })
+        cout << CubicNewtonCotesIntegral([](double x) { return 1 / (x * x); }, 1, 13, i) << endl;
+
     return 0;
 }
 
