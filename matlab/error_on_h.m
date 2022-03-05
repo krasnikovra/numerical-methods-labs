@@ -11,5 +11,5 @@ loglog(h, err, ...
 title("Зависимость фактической ошибки от длины отрезка разбиения")
 xlabel("H")
 ylabel("Фактическая ошибка")
-legend("Ошибка", "y=Ch^4, C=0.079", "Максимальная ошибка", 'location', 'northwest')
+legend("Ошибка", "y=CH^4, C=0.079", "Максимальная ошибка", 'location', 'northwest')
 grid on

@@ -17,12 +17,13 @@ using namespace std;
 
 using MathFunc = double (*)(double);
 
-double Pow(double a, int b);
+double Pow(double a, size_t b);
+size_t Pow(size_t a, size_t b);
 double TheoreticError(const double a, const double b, const size_t m, const double fDer4Val);
 double CubicNewtonCotesIntegral(MathFunc f, const double a, const double b, const size_t intervalsCount);
 double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps, size_t* q = nullptr);
 
-void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
+void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double m4, const double M4, const double eps0, const size_t steps);
 void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
 void WriteErrorOnH(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double m4, const double M4, const size_t steps);
 void WriteConstApprox(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t steps);
@@ -49,7 +50,7 @@ int main() {
     const size_t epsSteps = 12;
     const size_t hSteps = 12;
     try {
-        WriteErrorOnEps(ROOT"csv/error_on_eps.csv", f, F, a, b, eps0, epsSteps);
+        WriteErrorOnEps(ROOT"csv/error_on_eps.csv", f, F, a, b, m4, M4, eps0, epsSteps);
         WriteQOnEps(ROOT"csv/q_on_eps.csv", f, F, a, b, eps0, epsSteps);
         WriteErrorOnH(ROOT"csv/error_on_h.csv", f, F, a, b, m4, M4, hSteps);
         WriteConstApprox(ROOT"csv/const_approx.csv", f, F, a, b, hSteps);
@@ -64,9 +65,16 @@ int main() {
     return 0;
 }
 
-double Pow(double a, int b) {
+double Pow(double a, size_t b) {
     double res = 1;
-    for (int i = 0; i < b; i++)
+    for (size_t i = 0; i < b; i++)
+        res *= a;
+    return res;
+}
+
+size_t Pow(size_t a, size_t b) {
+    size_t res = 1;
+    for (size_t i = 0; i < b; i++)
         res *= a;
     return res;
 }
@@ -90,7 +98,7 @@ double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const doub
     size_t intervalsCount = 1;
     size_t iters = 0;
     const int k = 4; // method's order
-    const double coef = Pow(2, k) - 1;
+    const size_t coef = Pow((size_t)2, k) - 1;
     double iPrev = CubicNewtonCotesIntegral(f, a, b, intervalsCount);
     double i = iPrev;
     do {
@@ -104,16 +112,18 @@ double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const doub
     return i;
 }
 
-void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps) {
+void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double m4, const double M4, const double eps0, const size_t steps) {
     ofstream file(filename);
     if (!file.is_open())
         throw string("File ") + filename + string(" could not be opened.");
     SET_STREAM_PRECISION(file);
-    file << "eps;err" << endl;
+    file << "eps;err;min;max" << endl;
     double eps = eps0;
     const double exactIntegral = F(b) - F(a);
     for (size_t i = 0; i < steps; i++) {
-        file << eps << ";" << abs(exactIntegral - EvaluateIntegralWithRungesAccuracy(f, a, b, eps)) << endl;
+        size_t iters = 0;
+        file << eps << ";" << abs(exactIntegral - EvaluateIntegralWithRungesAccuracy(f, a, b, eps, &iters)) << ";";
+        file << TheoreticError(a, b, Pow((size_t)2, iters), m4) << ";" << TheoreticError(a, b, Pow((size_t)2, iters), M4) << endl;
         eps /= 10;
     }
     file.close();
