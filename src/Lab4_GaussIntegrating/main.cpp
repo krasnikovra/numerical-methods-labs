@@ -9,6 +9,7 @@
 #define SET_STREAM_PRECISION(stream) \
     (stream).setf(ios::fixed); \
     (stream) << setprecision(PRECISION)
+#define T -1.3
 
 using namespace std;
 using MathFunc = double (*)(double);
