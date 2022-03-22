@@ -33,13 +33,8 @@ double f(double x) {
 }
 
 double F(double x) {
-    const double COS = cos(0.4 * x);
-    const double SIN = sin(0.4 * x);
-    //return (243775 * COS) / 8.0 - (1445 * SIN) / 8.0 + (275 * x * COS) / 4.0
-    //    + (48755 * x * SIN) / 4.0 - (9765 * Pow(x, 2) * COS) / 4.0 + (125 * Pow(x, 4) * COS) / 4.0
-    //    + (55 * Pow(x, 2) * SIN) / 4.0 - (651 * Pow(x, 3) * SIN) / 2.0 + (5 * Pow(x, 5) * SIN) / 2.0;
-    return COS * (30471.875 + 68.75 * x - 2441.25 * Pow(x, 2) + 31.25 * Pow(x, 4)) +
-        SIN * (-180.625 + 12188.75 * x + 13.75 * Pow(x, 2) - 325.5 * Pow(x, 3) + 2.5 * Pow(x, 5));
+    return cos(0.4 * x) * (30471.875 + 68.75 * x - 2441.25 * Pow(x, 2) + 31.25 * Pow(x, 4)) +
+        sin(0.4 * x) * (-180.625 + 12188.75 * x + 13.75 * Pow(x, 2) - 325.5 * Pow(x, 3) + 2.5 * Pow(x, 5));
 }
 
 int main() {
@@ -111,7 +106,7 @@ double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const doub
     if (q != nullptr)
         *q = iters;
     if (richardson != nullptr)
-        *richardson = ((coef + 1) * i - iPrev) / coef;
+        *richardson = i + (i - iPrev) / coef;
     return i;
 }
 
