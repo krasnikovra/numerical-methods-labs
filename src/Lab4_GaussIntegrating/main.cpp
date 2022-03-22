@@ -9,13 +9,14 @@
 #define SET_STREAM_PRECISION(stream) \
     (stream).setf(ios::fixed); \
     (stream) << setprecision(PRECISION)
+#define T -0.9
 
 using namespace std;
 using MathFunc = double (*)(double);
 using Grid = vector<double>;
 
 const Grid LEGENDRE_GRID = Grid{ -sqrt(0.6), 0, sqrt(0.6) };
-const Grid LEGENDRE_QUOT = Grid{ 5.0 / 9.0, 8.0 / 9.0, 5.0 / 9.0 };
+const Grid LEGENDRE_QUOT = Grid{ 5.0, 8.0, 5.0 };
 
 double Pow(double a, size_t b);
 Grid MakeUniformGrid(const double a, const double b, const size_t pointsCount);
@@ -24,9 +25,9 @@ double SimpleGaussIntegral(MathFunc f, const double a, const double b);
 double GaussIntegral(MathFunc f, const double a, const double b, const size_t intervalsCount);
 double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const double b, const double eps, size_t* q = nullptr, double* richardson = nullptr);
 
-void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
-void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps);
-void WriteErrorOnH(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t steps);
+void WriteErrorOnEps(const string& filename, MathFunc f, const double accInt, const double a, const double b, const double eps0, const size_t steps);
+void WriteQOnEps(const string& filename, MathFunc f, const double a, const double b, const double eps0, const size_t steps);
+void WriteErrorOnH(const string& filename, MathFunc f, const double accInt, const double a, const double b, const size_t steps);
 
 double f(double x) {
     return (Pow(x, 5) - 5.2 * Pow(x, 3) + 5.5 * Pow(x, 2) - 7 * x - 3.5) * cos(0.4 * x);
@@ -37,16 +38,31 @@ double F(double x) {
         sin(0.4 * x) * (-180.625 + 12188.75 * x + 13.75 * Pow(x, 2) - 325.5 * Pow(x, 3) + 2.5 * Pow(x, 5));
 }
 
+double fN(double x) {
+    return x < T ? f(x) : 2 * f(T) - f(x);
+}
+
 int main() {
     const double a = -3.0;
     const double b = 0.7;
     const double eps0 = 0.1;
     const size_t epsSteps = 11;
     const size_t hSteps = 11;
+
+    const double accInt = F(b) - F(a);
+    const double accIntN = F(T) - F(a) + 2 * b * f(T) - F(b) - 2 * T * f(T) + F(T);
+
     try {
-        WriteErrorOnEps(ROOT"csv/error_on_eps.csv", f, F, a, b, eps0, epsSteps);
-        WriteQOnEps(ROOT"csv/q_on_eps.csv", f, F, a, b, eps0, epsSteps);
-        WriteErrorOnH(ROOT"csv/error_on_h.csv", f, F, a, b, hSteps);
+        WriteErrorOnEps(ROOT"csv/error_on_eps.csv", f, accInt, a, b, eps0, epsSteps);
+        WriteQOnEps(ROOT"csv/q_on_eps.csv", f, a, b, eps0, epsSteps);
+        WriteErrorOnH(ROOT"csv/error_on_h.csv", f, accInt, a, b, hSteps);
+
+        WriteErrorOnEps(ROOT"csv/error_on_epsn.csv", fN, accIntN, a, b, eps0, epsSteps);
+        WriteQOnEps(ROOT"csv/q_on_epsn.csv", fN, a, b, eps0, epsSteps);
+        WriteErrorOnH(ROOT"csv/error_on_hn.csv", fN, accIntN, a, b, hSteps);
+
+        cout << EvaluateIntegralWithRungesAccuracy(fN, a, b, 1e-5) << endl;
+        cout << accIntN << endl;
     }
     catch (const string& err) {
         cout << "Error occured:" << endl << err << endl;
@@ -80,7 +96,7 @@ double SimpleGaussIntegral(MathFunc f, const double a, const double b) {
     Grid grid = TranslateLegendreGrid(a, b);
     for (size_t i = 0; i < grid.size(); i++)
         res += LEGENDRE_QUOT[i] * f(grid[i]);
-    return res * (b - a) / 2;
+    return res * (b - a) / 18;
 }
 
 double GaussIntegral(MathFunc f, const double a, const double b, const size_t intervalsCount) {
@@ -106,34 +122,32 @@ double EvaluateIntegralWithRungesAccuracy(MathFunc f, const double a, const doub
     if (q != nullptr)
         *q = iters;
     if (richardson != nullptr)
-        *richardson = i + (i - iPrev) / coef;
+        *richardson = ((coef + 1) * i - iPrev) / coef;
     return i;
 }
 
-void WriteErrorOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps) {
+void WriteErrorOnEps(const string& filename, MathFunc f, const double accInt, const double a, const double b, const double eps0, const size_t steps) {
     ofstream file(filename);
     if (!file.is_open())
         throw string("File ") + filename + string(" could not be opened.");
     SET_STREAM_PRECISION(file);
     file << "eps;err;err_richardson" << endl;
     double eps = eps0;
-    const double exactIntegral = F(b) - F(a);
     for (size_t i = 0; i < steps; i++) {
         double rich = 0.0;
-        file << eps << ";" << abs(exactIntegral - EvaluateIntegralWithRungesAccuracy(f, a, b, eps, nullptr, &rich)) << ";";
-        file << abs(exactIntegral - rich) << endl;
+        file << eps << ";" << abs(accInt - EvaluateIntegralWithRungesAccuracy(f, a, b, eps, nullptr, &rich)) << ";";
+        file << abs(accInt - rich) << endl;
         eps /= 10;
     }
     file.close();
 }
 
-void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const double eps0, const size_t steps) {
+void WriteQOnEps(const string& filename, MathFunc f, const double a, const double b, const double eps0, const size_t steps) {
     ofstream file(filename);
     if (!file.is_open())
         throw string("File ") + filename + string(" could not be opened.");
     SET_STREAM_PRECISION(file);
     file << "eps;q" << endl;
-    const double exactIntegral = F(b) - F(a);
     double eps = eps0;
     for (size_t i = 0; i < steps; i++) {
         size_t q = 0;
@@ -144,16 +158,15 @@ void WriteQOnEps(const string& filename, MathFunc f, MathFunc F, const double a,
     file.close();
 }
 
-void WriteErrorOnH(const string& filename, MathFunc f, MathFunc F, const double a, const double b, const size_t steps) {
+void WriteErrorOnH(const string& filename, MathFunc f, const double accInt, const double a, const double b, const size_t steps) {
     ofstream file(filename);
     if (!file.is_open())
         throw string("File ") + filename + string(" could not be opened.");
     SET_STREAM_PRECISION(file);
     file << "h;err" << endl;
-    const double exactIntegral = F(b) - F(a);
     size_t n = 1;
     for (size_t i = 0; i < steps; i++) {
-        file << (b - a) / n << ";" << abs(exactIntegral - GaussIntegral(f, a, b, n)) << endl;
+        file << (b - a) / n << ";" << abs(accInt - GaussIntegral(f, a, b, n)) << endl;
         n *= 2;
     }
     file.close();
