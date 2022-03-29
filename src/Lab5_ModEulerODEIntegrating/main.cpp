@@ -164,7 +164,7 @@ void WriteODESolutions(const string& filenameGeneric,
                        const double b,
                        const vector<size_t>& ns) {
     for (size_t i = 0; i < ns.size(); i++)
-        WriteGridFunc(filenameGeneric + to_string(i + 1) + ".csv", SimpleModEulerODE(f, y0, a, b, ns[i] - 1));
+        WriteGridFunc(filenameGeneric + to_string(i + 1) + ".csv", SimpleModEulerODE(f, y0, a, b, ns[i]));
 }
 
 void WriteErrorOnEps(const string& filename,
