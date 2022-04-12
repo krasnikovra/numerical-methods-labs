@@ -27,6 +27,7 @@ using ODEFunc = function<double(double, double)>;
 using ODEMethod = function<GridFunc(const ODEFunc&, const double, const double, const double, const size_t)>;
 
 double Pow(const double a, const size_t b);
+double EulerNextY(const ODEFunc& f, const double x, const double y, const double h);
 GridFunc AdamsODE(const ODEFunc& f, const double y0, const double a, const double b, const size_t n);
 GridFunc EulerAdamsPredictorCorrectorODE(const ODEFunc& f, const double y0, const double a, const double b, const size_t n);
 double MaxError(const MathFunc& f, const GridFunc& gridF);
@@ -78,13 +79,17 @@ double Pow(const double a, const size_t b) {
     return res;
 }
 
+double EulerNextY(const ODEFunc& f, const double x, const double y, const double h) {
+    return y + h * f(x + h / 2.0, y + h / 2.0 * f(x, y));
+}
+
 GridFunc AdamsODE(const ODEFunc& f, const double y0, const double a, const double b, const size_t n) {
     const double h = (b - a) / (double)n;
     GridFunc res = { Point(a, y0) };
     double xPrev = a;
     double yPrev = y0;
     double xCur = a + h;
-    double yCur = yPrev + h * f(xPrev + h / 2.0, yPrev + h / 2.0 * f(xPrev, yPrev));
+    double yCur = EulerNextY(f, xPrev, yPrev, h);
     double fPrev = f(xPrev, yPrev);
     res.push_back(Point(xCur, yCur));
     for (size_t i = 1; i < n; i++) {
@@ -109,7 +114,7 @@ GridFunc EulerAdamsPredictorCorrectorODE(const ODEFunc& f, const double y0, cons
     for (size_t i = 0; i < n; i++) {
         double xNext = xCur + h;
         // mod euler predictor
-        double yNextPredict = yCur + h * f(xCur + h / 2.0, yCur + h / 2.0 * f(xCur, yCur));
+        double yNextPredict = EulerNextY(f, xCur, yCur, h);
         // corrector
         double yNext = yCur + h / 2.0 * (f(xNext, yNextPredict) + f(xCur, yCur));
         yCur = yNext;

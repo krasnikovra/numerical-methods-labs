@@ -19,8 +19,8 @@ legend("Точное решение", "6 точек (h=0,2)", "11 точек (h=
 grid on
 
 figure 
-plot(x1, abs(f(x1)-y1), 'r--*',...
-     x2, abs(f(x2)-y2), 'y--*')
+plot(x1, (f(x1)-y1), 'r--*',...
+     x2, (f(x2)-y2), 'y--*')
 title("Ошибки")
 legend("6 точек (h=0,2)", "11 точек (h=0,1)",...
        'location', 'northwest')
