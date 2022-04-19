@@ -38,8 +38,6 @@ double Pow(const double a, const size_t b);
 GridFunc ModEulerODE(const ODEFunc& f, const Vector y0, const double a, const double b,
                      const size_t n);
 ODEFunc MakeODEFuncOf2ndOrderODE(const SecOrderODE& ode);
-ODEFunc MakeODEFuncOf2ndOrderODE(const MathFunc& p, const MathFunc& q, const MathFunc& r,
-                                 const MathFunc& f);
 MathFunc MakeZeroMathFunc();
 GridFunc SolveBordaryValueProblem(const SecOrderODE& ode, const double a, const double b,
                                   const Vector& alpha, const Vector& beta, const double A,
@@ -177,13 +175,6 @@ ODEFunc MakeODEFuncOf2ndOrderODE(const SecOrderODE& ode) {
     };
 }
 
-ODEFunc MakeODEFuncOf2ndOrderODE(const MathFunc& p, const MathFunc& q,
-                                 const MathFunc& r, const MathFunc& f) {
-    return [=](const double x, const Vector& y) -> Vector {
-        return { y[1], f(x) - r(x) / p(x) * y[0] - q(x) / p(x) * y[1] };
-    };
-}
-
 MathFunc MakeZeroMathFunc() {
     return [](const double x) -> double { return 0.0; };
 }
@@ -204,10 +195,14 @@ GridFunc SolveBordaryValueProblem(const SecOrderODE& ode,
         alpha[1],
         -alpha[0]
     };
-    GridFunc u = ModEulerODE(MakeODEFuncOf2ndOrderODE(ode),
-                             u0, a, b, n);
-    GridFunc v = ModEulerODE(MakeODEFuncOf2ndOrderODE(ode.p, ode.q, ode.r, MakeZeroMathFunc()),
-                             u0, a, b, n);
+    GridFunc u = ModEulerODE(
+        MakeODEFuncOf2ndOrderODE(ode),
+        u0, a, b, n
+    );
+    GridFunc v = ModEulerODE(
+        MakeODEFuncOf2ndOrderODE(SecOrderODE(ode.p, ode.q, ode.r, MakeZeroMathFunc())),
+        u0, a, b, n
+    );
     const double c = (B - beta[0] * u[u.size() - 1].y[0] - beta[1] * u[u.size() - 1].y[1]) /
         (beta[0] * v[v.size() - 1].y[0] + beta[1] * v[v.size() - 1].y[1]);
     return u + c * v;
