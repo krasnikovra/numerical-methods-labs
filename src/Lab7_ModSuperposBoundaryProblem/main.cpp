@@ -201,7 +201,7 @@ GridFunc SolveBordaryValueProblem(const SecOrderODE& ode,
     );
     GridFunc v = ModEulerODE(
         MakeODEFuncOf2ndOrderODE(SecOrderODE(ode.p, ode.q, ode.r, MakeZeroMathFunc())),
-        u0, a, b, n
+        v0, a, b, n
     );
     const double c = (B - beta[0] * u[u.size() - 1].y[0] - beta[1] * u[u.size() - 1].y[1]) /
         (beta[0] * v[v.size() - 1].y[0] + beta[1] * v[v.size() - 1].y[1]);
