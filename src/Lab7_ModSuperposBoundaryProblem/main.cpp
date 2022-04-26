@@ -176,7 +176,7 @@ GridFunc ModEulerODE(const ODEFunc& f, const Vector y0,
 
 ODEFunc MakeODEFuncOf2ndOrderODE(const SecOrderODE& ode) {
     return [ode](const double x, const Vector& y) -> Vector { 
-        return { y[1], ode.f(x) - ode.r(x) / ode.p(x) * y[0] - ode.q(x) / ode.p(x) * y[1] }; 
+        return { y[1], ode.f(x) / ode.p(x) - ode.r(x) / ode.p(x) * y[0] - ode.q(x) / ode.p(x) * y[1]};
     };
 }
 
