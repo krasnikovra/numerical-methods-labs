@@ -71,8 +71,8 @@ int main() {
     const MathFunc q = [](const double x) -> double { return 1.0 + Pow(sin(x), 2); };
     const MathFunc r = [](const double x) -> double { return Pow(cos(x), 2); };
     const MathFunc f = [](const double x) -> double { return 3.0 * exp(x); };
-    const double a = 0.0;
-    const double b = 1.0;
+    const double a = 1.0;
+    const double b = 0.0;
     const Vector alpha = { 1.0, 1.0 };
     const Vector beta = { 1.0, 0.0 };
     const double A = alpha[0] * solEx(a) + alpha[1] * solExDer(a);
@@ -103,6 +103,11 @@ int main() {
         WriteErrorOnH(ROOT"csv/err_on_h.csv", solEx, ode, a, b, alpha, beta, A, B, n0, nSteps);
         WriteErrorOnDA(ROOT"csv/err_on_da.csv", solEx, ode, a, b, alpha, beta, A, B, n, dA0, dASteps);
         WriteErrorOnDB(ROOT"csv/err_on_db.csv", solEx, ode, a, b, alpha, beta, A, B, n, dB0, dBSteps);
+
+        WriteSolutions(ROOT"csv/ansder", ode, a, b, alpha, beta, A, B, ns, 1);
+        WriteErrorOnH(ROOT"csv/err_on_hder.csv", solExDer, ode, a, b, alpha, beta, A, B, n0, nSteps, 1);
+        WriteErrorOnDA(ROOT"csv/err_on_dader.csv", solExDer, ode, a, b, alpha, beta, A, B, n, dA0, dASteps, 1);
+        WriteErrorOnDB(ROOT"csv/err_on_dbder.csv", solExDer, ode, a, b, alpha, beta, A, B, n, dB0, dBSteps, 1);
     }
     catch (const exception& e) {
         cout << "An error occured!" << endl;
