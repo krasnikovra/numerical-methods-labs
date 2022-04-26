@@ -1,0 +1,643 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{indentfirst} 
+\allowdisplaybreaks
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1.5cm}% верхнее поле
+\geometry{bottom=3cm}% нижнее поле
+
+\newtheorem{theorem}{Теорема}
+
+\begin{document}
+	% Титульный лист
+	\begin{titlepage}
+		\begin{center}
+			Санкт-Петербургский политехнический университет Петра Великого \\ Физико-механический институт \\ Высшая школа прикладной математики и вычислительной физики
+		\end{center}
+		\vspace{10em}
+		\begin{center}
+			\Large Отчет по лабораторной работе №7 \\ по дисциплине "Численные методы"
+		\end{center}
+		\vspace{1em}
+		\begin{center}
+			\Huge Решение краевой задачи для линейного ДУ 2 порядка. Модифицированный метод суперпозиции.
+		\end{center}
+		\vspace{15em}
+		{\Large 
+			
+			Выполнил: студент гр. 5030102/00003 Красников Р.А.
+			\vspace{1em}
+			
+			Преподаватель: Добрецова С.Б.}
+		\vspace{\fill}
+		\begin{center}
+			Санкт-Петербург \\ 2022
+		\end{center}
+	\end{titlepage}
+	\newpage
+	
+	\section{Формулировка и формализация задачи.}
+	
+	\subsection{Формулировка задачи.}
+	
+	Решить краевую задачу для линейного ДУ 2 порядка.
+	
+	Построить графики точного и полученного решения, а также график ошибки для двух значений шага.
+	
+	Построить графики и исследовать зависимости максимальной фактической ошибки от величины шага.
+	
+	Внести в начальное условие возмущение. Построить график зависимости фактической ошибки от величины возмущения при фиксированной точности.  
+	
+	\subsection{Постановка задачи.}
+	
+	Дана краевая задача
+	\begin{equation} \label{task}
+		\begin{gathered}
+			p(x)y''+q(x)y'+p(x)y=f(x), x\in[a,b],\\
+			\begin{cases}
+				\alpha_0y(a)+\alpha_1y'(a)=A, &\alpha_0^2+\alpha_1^2\neq0,\\
+				\beta_0y(b)+\beta_1y'(b)=B, &\beta_0^2+\beta_1^2\neq0
+			\end{cases}
+		\end{gathered}
+	\end{equation}
+	такая, что ее решение -- единственная дважды непрерывно дифференцируемая функция $\varphi$ удовлетворяющая условиям \eqref{task}:
+	\begin{equation}
+		\begin{gathered}
+			\forall x\in[a,b]: p(x)\varphi''(x)+q(x)\varphi'(x)+p(x)\varphi(x)=f(x),\\ 
+			\begin{cases}
+				\alpha_0\varphi(a)+\alpha_1\varphi'(a)=A,\\
+				\beta_0\varphi(b)+\beta_1\varphi'(b)=B
+			\end{cases}
+		\end{gathered}
+	\end{equation}
+	Также задана сетка $\{x_i\}_{i=0}^n$.
+	
+	Найти сеточную функцию $\{(x_i,y_i)\}_{i=0}^n$ такую, что
+	\begin{equation}
+		y_i\approx\varphi(x_i), i=\overline{0,n}
+	\end{equation}
+	
+	\section{Алгоритм и условия его применимости.}
+	
+	\subsection{Алгоритм решения краевой задачи \eqref{task} модифицированным методом суперпозиции.}
+	\label{alghorithm_simple}
+	
+	Введем обозначения. 
+	\begin{equation}
+		\mathbf{y}(x)=[y(x),y'(x),...,y^{(n)}(x)]^\top : \mathbb{R}\rightarrow\mathbb{R}^{n+1}
+	\end{equation}
+	-- вектор-функция,
+	\begin{equation}
+		\mathbf{y_i}=[y_{i0},y_{i1},...,y_{in}]^\top\in \mathbb{R}^{n+1}
+	\end{equation}
+	-- $i$-ая компонента сеточной вектор-функции $\{x_i, \mathbf{y_i}\}_{i=0}^m$. В данных обозначениях $y_{ij}$ -- это значение $j$-ой производной в точке $x_i$.
+	
+	\begin{enumerate}
+		\item Ввести функции $p(x),q(x),r(x),f(x)$, отрезок $[a,b]$, начальное условие: числа $\alpha_0, \alpha_1, A$ и $\beta_0, \beta_1, B$, число отрезков разбиения $m$ (число точек равномерной сетки составит $m+1$).
+		\item Задать вектор-функции $\mathbf{F}, \mathbf{F^*}:\mathbb{R}^3\rightarrow\mathbb{R}^2$ по формулам
+		\begin{equation}
+			\begin{gathered}
+				\mathbf{F}(x, \mathbf{y}) =
+				\begin{bmatrix}
+					y_1\\
+					f(x)-\dfrac{r(x)}{p(x)}y_0-\dfrac{q(x)}{p(x)}y_1
+				\end{bmatrix},\\
+				\mathbf{F^*}(x, \mathbf{y}) =
+				\begin{bmatrix}
+					y_1\\
+					-\dfrac{r(x)}{p(x)}y_0-\dfrac{q(x)}{p(x)}y_1
+				\end{bmatrix}
+			\end{gathered}
+		\end{equation}
+		\item Задать начальные условия $\mathbf{u_0}, \mathbf{v_0}$ по формулам
+		\begin{equation}
+			\begin{gathered}
+				\mathbf{u_0} =
+				\begin{bmatrix}
+					\dfrac{\alpha_0}{\alpha_0^2+\alpha_1^2}A\\
+					\dfrac{\alpha_1}{\alpha_0^2+\alpha_1^2}A
+				\end{bmatrix},\\
+				\mathbf{v_0} =
+				\begin{bmatrix}
+					\alpha_1\\
+					-\alpha_0
+				\end{bmatrix}
+			\end{gathered}
+		\end{equation}
+		\item Решить на равномерной сетке $\{x_i\}_{i=0}^m$ задачи Коши
+		\begin{equation}
+			\begin{gathered}
+				\mathbf{u'}=\mathbf{F}(x,\mathbf{u}), \ \mathbf{u}(a)=\mathbf{u_0},\\
+				\mathbf{v'}=\mathbf{F^*}(x,\mathbf{v}), \ \mathbf{v}(a)=\mathbf{v_0}
+			\end{gathered}
+		\end{equation}
+		-- получаем сеточные функции $\{x_i,\mathbf{u_i}\}_{i=0}^m$ и $\{x_i,\mathbf{v_i}\}_{i=0}^m$.
+		\item Вычислить константу $c$ по формуле
+		\begin{equation} \label{const}
+			c=\dfrac{B-(\beta_0u_{m0}+\beta_1u_{m1})}{\beta_0v_{m0}+\beta_1v_{m1}}
+		\end{equation}
+		\item Положить $\{x_i,y_i\}_{i=0}^m = \{x_i,u_{i0}+cv_{i0}\}_{i=0}^m$ -- искомая сеточная функция.
+	\end{enumerate}
+		
+	\textit{Замечание 1.} Можно задавать не число отрезков разбиения (или число точек равномерной сетки), а непосредственно сам шаг $h$, но в этом случае не гарантируется, что полученная сеточная функция будет определена в точке $b$, то есть формально решение будет найдено для некоторого меньшего отрезка ${[a,x_m] \varsubsetneq [a,b]}$.
+	
+	\textit{Замечание 2.} На последнем шаге можно положить $\{x_i,\mathbf{y_i}\} = \{x_i,\mathbf{u_i}+c\mathbf{v_i}\}$ -- получим не только приближенное значение искомой функции $y_{i0}$, но и ее производной $y_{i1}$ в точке $x_i$, выполняются приближенные равенства
+	\begin{equation}
+		\begin{aligned}
+			y_{i0} &\approx \varphi(x_i),\\
+			y_{i1} &\approx \varphi'(x_i), i=\overline{0,m}
+		\end{aligned}
+	\end{equation} 
+
+	В данной лабораторной работе задачи Коши решаются модифицированным методом Эйлера (вариант лабораторной работы №5):
+	\begin{equation} \label{modeuler}
+		\mathbf{y_i} = \mathbf{y_{i-1}} + h\mathbf{F}(x_{i-1} + \frac{h}{2}, \mathbf{y_{i-1}}+\frac{h}{2}\mathbf{F}(x_{i-1},\mathbf{y_{i-1}}))
+	\end{equation}
+	
+	\subsection{Условия применимости алгоритма решения краевой задачи \eqref{task} модифицированным методом суперпозиции.}
+	
+	\begin{enumerate}
+		\item $\alpha_0^2+\alpha_1^2\neq0$, $\beta_0^2+\beta_1^2\neq0$,
+		\item $\beta_0v(b)+\beta_1v'(b) \neq 0$.
+	\end{enumerate}
+
+	Условие 2 есть условие необращения в 0 знаменателя в выражении \eqref{const}. Если знаменатель обращается в 0, то однородная краевая задача имеет нетривиальные решения, что в свою очередь служит признаком вырожденности решаемой краевой задачи. Такие случаи, в соответствии с постановкой задачи к лабораторной работе, не рассматриваются.
+	
+	\subsection{Теоретический переход от краевой задачи к двум задачам Коши.}
+	
+	Рассматривается краевая задача \eqref{task}. Будем искать решение $y^*(x)$ в виде 
+	\begin{equation}
+		y^*(x)=u(x)+cv(x),
+	\end{equation}
+	где $u(x)$ -- решение неодонородного линейного ДУ:
+	\begin{equation} \label{1cauchytask}
+		p(x)y''+q(x)y'+p(x)y=f(x),
+	\end{equation}
+	а $v(x)$ -- решение однородного линейного ДУ:
+	\begin{equation} \label{2cauchytask}
+		p(x)y''+q(x)y'+p(x)y=0
+	\end{equation}
+	
+	Подберем начальные условия на функции $u(x)$ и $v(x)$ так, чтобы первое граничное условие выполнялось для любого $c$. Подставим в первое граничное условие выражение для $y^*$:
+	\begin{equation} \label{general1boundcond}
+		\alpha_0(u(a)+cv(a))+\alpha_1(u'(a)+cv'(a))=A,
+	\end{equation}
+	откуда, подставляя $c=0$, получаем
+	\begin{equation} \label{1initval}
+		\alpha_0u(a)+\alpha_1u'(a)=A \Rightarrow
+		\begin{cases}
+			u(a) = \dfrac{\alpha_0}{\alpha_0^2+\alpha_1^2}A,\\
+			u'(a) = \dfrac{\alpha_1}{\alpha_0^2+\alpha_1^2}A
+		\end{cases}
+	\end{equation}
+	-- начальное условие на $u(x)$. Получена первая задача Коши: \eqref{1cauchytask}, \eqref{1initval}.
+	
+	Далее, вычитанием \eqref{1initval} из \eqref{general1boundcond} получаем
+	\begin{equation} \label{2initval}
+		c(\alpha_0v(a)+\alpha_1v'(a))=0 \Rightarrow
+		\begin{cases}
+			v(a) = \alpha_1,\\
+			v'(a) = -\alpha_0
+		\end{cases}
+	\end{equation}
+	-- начальное условие на $v(x)$. Получена вторая задача Коши: \eqref{2cauchytask}, \eqref{2initval}.
+	
+	\textit{Замечание.} Выбранные граничные условия не единственно возможные. Так можно было бы, например, положить $u'(a)=0$, а $u(a)=\dfrac{A}{\alpha_0}$. Однако такое условие имеет место если $\alpha_0\neq0$. Выбранное же в тексте пункта условие имеет место для любой корректно заданной ($\alpha_0^2+\alpha_1^2\neq0$) краевой задачи. Также, для $v(a)$ выбраны ненулевые условия потому, что с нулевыми начальными условиями на $v(x)$ \eqref{2initval} хоть и выполняется для всех $c$, но решение задачи Коши \eqref{2cauchytask}, \eqref{2initval} неединственно.
+	
+	\subsection{Теоретический переход от задачи Коши для ДУ высших порядков к задаче Коши для системы ДУ 1 порядка.}
+	
+	Рассматривается задача Коши для ДУ, разрешенное относительно старшей производной
+	\begin{equation} \label{generalode}
+		\begin{gathered}
+			y^{(n)} = f(x,y,y',...,y^{(n-1)}),\\
+			y(a), y'(a),...,y^{(n-1)}(a)
+		\end{gathered}
+	\end{equation}
+	Положим $y_0(x) = y(x), y_1(x)=y'(x),...,y_{n-1}(x)=y^{(n-1)}(x)$. Уравнение \eqref{generalode} сводится к системе уравнений
+	\begin{equation}
+		\begin{cases}
+			y'_0 = y_1,\\
+			y'_1 = y_2,\\
+			...\\
+			y'_{n-1} = f(x,y_0,y_1,y_2,...,y_{n-1})
+		\end{cases}
+	\end{equation}
+
+	Если обозначить 
+		\begin{equation}
+			\mathbf{y}(x)=
+			\begin{bmatrix}
+				y_0(x)\\
+				\vdots\\
+				y_{n-1}(x)
+			\end{bmatrix}, \  
+			\mathbf{y_0}=\mathbf{y}(a)=
+			\begin{bmatrix}
+				y(a)\\
+				\vdots\\
+				y^{(n-1)}(a)
+			\end{bmatrix}, \ 
+			\mathbf{F}(x,\mathbf{y}) = 
+			\begin{bmatrix}
+				y_1\\
+				\vdots\\
+				f(x,y_0,y_1)
+			\end{bmatrix},
+		\end{equation}
+	то задача Коши \eqref{generalode} запишется в виде
+	\begin{equation}
+		\begin{gathered}
+			\mathbf{y'}=\mathbf{F}(x,\mathbf{y}),\\
+			\mathbf{y}(a)=\mathbf{y_0}
+		\end{gathered}
+	\end{equation}
+	В таком виде уравнение похоже на ДУ 1 порядка, но $\mathbf{y}$ -- вектор. Методы решения задачи Коши для ДУ 1 порядка распространяются на случай высших порядков применением аналогичных арифметических операций с векторами.
+	
+	\section{Анализ задачи.}
+	
+	Для выполнения работы мне была предложена краевая задача
+	\begin{equation} \label{mytask}
+		\begin{gathered}
+			y''+(1+\sin^2x)y'+y\cos^2x=3e^x, x\in[0,1],\\
+			\begin{cases}
+				y(0)+y'(0)=2,\\
+				y(1)=e
+			\end{cases}
+		\end{gathered}
+	\end{equation}
+	Ее точное решение $y^*(x)=e^x$. 
+	
+	\subsection{Проверка существования и единственности решения.}
+	\label{solexistance}
+	
+	Проверим, что $y^*(x)=e^x$ -- точное решение краевой задачи \eqref{mytask}:
+	\begin{equation*}
+		(e^x)''+(1+\sin^2x)(e^x)'+e^x\cos^2x=(1+1+\sin^2x+\cos^2x)e^x=3e^x,
+	\end{equation*}
+	-- решение существует.
+	
+	\section{Проверка условий применимости модифицированного метода суперпозиции.}
+	
+	\begin{enumerate}
+		\item $\alpha_0^2+\alpha_1^2=1^2+1^2\neq0$, $\beta_0^2+\beta_1^2=1^2+0^2\neq0$,
+		\item Предложенная краевая задача имеет единственное решение, поэтому знаменатель в \eqref{const} не обращается в 0.
+	\end{enumerate}
+	
+	Условия применимости модифицированного метода суперпозиции выполнены.
+	
+	\section{Тестовый пример.} \label{testexample}
+	
+	Для демонстрации модифицированного метода суперпозиции вычислим приближенное значение решения краевой задачи \eqref{mytask} для 5 точек.
+	
+	Точное решение
+	\begin{equation*}
+		\begin{gathered}
+			y(x)=e^x\\
+			y'(x)=e^x
+		\end{gathered}
+	\end{equation*}
+	
+	В рассматриваемой задаче
+	\begin{equation*}
+		\begin{gathered}
+			p(x)=1,\ q(x)=1+\sin^2x, \ r(x)=\cos^2x, \ f(x) = 3e^x\\
+			a = 0,\ b = 1,\ h=\dfrac{b-a}{m}=\dfrac{1-0}{5-1}=0.25\\
+			\alpha_0=1,\ \alpha_1=1,\ A=2\\
+			\beta_0=1,\ \beta_1=0,\ B=e\approx2.7183
+		\end{gathered}
+	\end{equation*}
+
+	Во введенных обозначениях имеем
+	\begin{equation*}
+		\begin{gathered}
+		\mathbf{y}=
+		\begin{bmatrix}
+			y_0\\
+			y_1
+		\end{bmatrix}, \ 
+		\mathbf{F}(x, \mathbf{y})=
+		\begin{bmatrix}
+			y_1\\
+			3e^x-y_0\cos^2x-y_1(1+\sin^2x)
+		\end{bmatrix}, \
+		\mathbf{F^*}(x, \mathbf{y})=
+		\begin{bmatrix}
+			y_1\\
+			-y_0\cos^2x-y_1(1+\sin^2x)
+		\end{bmatrix}, \\
+		\mathbf{u_0}=
+		\begin{bmatrix}
+			1\\
+			1
+		\end{bmatrix}, \
+		\mathbf{v_0}=
+		\begin{bmatrix}
+			1\\
+			-1
+		\end{bmatrix}
+		\end{gathered}
+	\end{equation*}
+	
+	\begin{enumerate}
+		\item Строим равномерную сетку на 5 точках на отрезке $[0,1]$:
+			\begin{equation*}
+				\{x_i\}_{i=0}^4=\{0.0, 0.25, 0.5, 0.75, 1.0\}
+			\end{equation*}
+		\item Решаем задачу Коши для функции $u(x)$:
+			\begin{equation*}
+				\mathbf{u'}=\mathbf{F}(x,\mathbf{u}), \ \mathbf{u}(a)=\mathbf{u_0},
+			\end{equation*}
+			По формуле модифицированного метода Эйлера
+			\begin{align*}
+				\mathbf{u_1}&=\mathbf{u_0} + h\mathbf{F}(x_0 + \frac{h}{2}, \mathbf{u_0}+\frac{h}{2}\mathbf{F}(x_0,\mathbf{u_0}))=\\&=
+				\begin{bmatrix}
+					1\\
+					1
+				\end{bmatrix} + 0.25\mathbf{F}\bigg(0.0 + 0.125, 
+				\begin{bmatrix}
+					1\\
+					1
+				\end{bmatrix} + 0.125\mathbf{F}\bigg(0.0, 
+				\begin{bmatrix}
+					1\\
+					1
+				\end{bmatrix}\bigg)\bigg)=
+				\begin{bmatrix}
+					1.2813\\
+					1.2874
+				\end{bmatrix}\\
+				\mathbf{u_2}&=\mathbf{u_1} + h\mathbf{F}(x_1 + \frac{h}{2}, \mathbf{u_1}+\frac{h}{2}\mathbf{F}(x_1,\mathbf{u_1}))=\\&=
+				\begin{bmatrix}
+					1.2813\\
+					1.2874
+				\end{bmatrix} + 0.25\mathbf{F}\bigg(0.25 + 0.125, 
+				\begin{bmatrix}
+					1.2813\\
+					1.2874
+				\end{bmatrix} + 0.125\mathbf{F}\bigg(0.25, 
+				\begin{bmatrix}
+					1.2813\\
+					1.2874
+				\end{bmatrix}\bigg)\bigg)=
+				\begin{bmatrix}
+					1.6432\\
+					1.6559
+				\end{bmatrix}\\
+				\mathbf{u_3}&=\mathbf{u_2} + h\mathbf{F}(x_2 + \frac{h}{2}, \mathbf{u_2}+\frac{h}{2}\mathbf{F}(x_2,\mathbf{u_2}))=\\&=
+				\begin{bmatrix}
+					1.6432\\
+					1.6559
+				\end{bmatrix} + 0.25\mathbf{F}\bigg(0.5 + 0.125, 
+				\begin{bmatrix}
+					1.6432\\
+					1.6559
+				\end{bmatrix} + 0.125\mathbf{F}\bigg(0.5, 
+				\begin{bmatrix}
+					1.6432\\
+					1.6559
+				\end{bmatrix}\bigg)\bigg)=
+				\begin{bmatrix}
+					2.1085\\
+					2.1283
+				\end{bmatrix}\\
+				\mathbf{u_4}&=\mathbf{u_3} + h\mathbf{F}(x_3 + \frac{h}{2}, \mathbf{u_3}+\frac{h}{2}\mathbf{F}(x_3,\mathbf{u_3}))=\\&=
+				\begin{bmatrix}
+					2.1085\\
+					2.1283
+				\end{bmatrix} + 0.25\mathbf{F}\bigg(0.75 + 0.125, 
+				\begin{bmatrix}
+					2.1085\\
+					2.1283
+				\end{bmatrix} + 0.125\mathbf{F}\bigg(0.75, 
+				\begin{bmatrix}
+					2.1085\\
+					2.1283
+				\end{bmatrix}\bigg)\bigg)=
+				\begin{bmatrix}
+					2.7064\\
+					2.7334
+				\end{bmatrix}
+			\end{align*}
+		\item Решаем задачу Коши для функции $v(x)$:
+		\begin{equation*}
+			\mathbf{v'}=\mathbf{F^*}(x,\mathbf{v}), \ \mathbf{v}(a)=\mathbf{v_0},
+		\end{equation*}
+			По формуле модифицированного метода Эйлера
+			\begin{align*}
+				\mathbf{v_1}&=\mathbf{v_0} + h\mathbf{F^*}(x_0 + \frac{h}{2}, \mathbf{v_0}+\frac{h}{2}\mathbf{F^*}(x_0,\mathbf{v_0}))=\\&=
+				\begin{bmatrix}
+					1\\
+					-1
+				\end{bmatrix} + 0.25\mathbf{F^*}\bigg(0.0 + 0.125, 
+				\begin{bmatrix}
+					1\\
+					-1
+				\end{bmatrix} + 0.125\mathbf{F^*}\bigg(0.0, 
+				\begin{bmatrix}
+					1\\
+					-1
+				\end{bmatrix}\bigg)\bigg)=
+				\begin{bmatrix}
+					0.7500\\
+					-0.9615
+				\end{bmatrix}\\
+				\mathbf{v_2}&=\mathbf{v_1} + h\mathbf{F^*}(x_1 + \frac{h}{2}, \mathbf{v_1}+\frac{h}{2}\mathbf{F^*}(x_1,\mathbf{v_1}))=\\&=
+				\begin{bmatrix}
+					0.7500\\
+					-0.9615
+				\end{bmatrix} + 0.25\mathbf{F^*}\bigg(0.25 + 0.125, 
+				\begin{bmatrix}
+					0.7500\\
+					-0.9615
+				\end{bmatrix} + 0.125\mathbf{F^*}\bigg(0.25, 
+				\begin{bmatrix}
+					0.7500\\
+					-0.9615
+				\end{bmatrix}\bigg)\bigg)=\\&=
+				\begin{bmatrix}
+					0.5195\\
+					-0.8364
+				\end{bmatrix}\\
+				\mathbf{v_3}&=\mathbf{v_2} + h\mathbf{F^*}(x_2 + \frac{h}{2}, \mathbf{v_2}+\frac{h}{2}\mathbf{F^*}(x_2,\mathbf{v_2}))=\\&=
+				\begin{bmatrix}
+					0.5195\\
+					-0.8364
+				\end{bmatrix} + 0.25\mathbf{F^*}\bigg(0.5 + 0.125, 
+				\begin{bmatrix}
+					0.5195\\
+					-0.8364
+				\end{bmatrix} + 0.125\mathbf{F^*}\bigg(0.5, 
+				\begin{bmatrix}
+					0.5195\\
+					-0.8364
+				\end{bmatrix}\bigg)\bigg)=\\&=
+				\begin{bmatrix}
+					0.3301\\
+					-0.6503
+				\end{bmatrix}\\
+				\mathbf{v_4}&=\mathbf{v_3} + h\mathbf{F^*}(x_3 + \frac{h}{2}, \mathbf{v_3}+\frac{h}{2}\mathbf{F^*}(x_3,\mathbf{v_3}))=\\&=
+				\begin{bmatrix}
+					0.3301\\
+					-0.6503
+				\end{bmatrix} + 0.25\mathbf{F^*}\bigg(0.75 + 0.125, 
+				\begin{bmatrix}
+					0.3301\\
+					-0.6503
+				\end{bmatrix} + 0.125\mathbf{F^*}\bigg(0.75, 
+				\begin{bmatrix}
+					0.3301\\
+					-0.6503
+				\end{bmatrix}\bigg)\bigg)=\\&=
+				\begin{bmatrix}
+					0.1917\\
+					-0.4560
+				\end{bmatrix}
+			\end{align*}
+		\item Вычисляем константу $c$:
+			\begin{equation*}
+				c=\dfrac{B-(\beta_0u_{40}+\beta_1u_{41})}{\beta_0v_{40}+\beta_1v_{41}}=
+				\dfrac{2.7183-(1\cdot2.7064+0\cdot2.7334)}{1\cdot0.1917+0\cdot(-0.4560)}=0.0621
+			\end{equation*}
+		\item Вычисляем окончательное численное решение:
+			\begin{align*}
+				\mathbf{y_0}&=\mathbf{u_0}+c\mathbf{v_0}=
+				\begin{bmatrix}
+					1\\
+					1
+				\end{bmatrix} + 0.0621 \cdot 
+				\begin{bmatrix}
+					1\\
+					-1
+				\end{bmatrix} = 
+				\begin{bmatrix}
+					1.0621\\
+					0.9379
+				\end{bmatrix}\\
+				\mathbf{y_1}&=\mathbf{u_1}+c\mathbf{v_1}=
+				\begin{bmatrix}
+					1.2813\\
+					1.2874
+				\end{bmatrix} + 0.0621 \cdot 
+				\begin{bmatrix}
+					0.7500\\
+					-0.9615
+				\end{bmatrix} = 
+				\begin{bmatrix}
+					1.3279\\
+					1.2277
+				\end{bmatrix}\\
+				\mathbf{y_2}&=\mathbf{u_2}+c\mathbf{v_2}=
+				\begin{bmatrix}
+					1.6432\\
+					1.6559
+				\end{bmatrix} + 0.0621 \cdot 
+				\begin{bmatrix}
+					0.5195\\
+					-0.8364
+				\end{bmatrix} = 
+				\begin{bmatrix}
+					1.6755\\
+					1.6040
+				\end{bmatrix}\\
+				\mathbf{y_3}&=\mathbf{u_3}+c\mathbf{v_3}=
+				\begin{bmatrix}
+					2.1085\\
+					2.1283
+				\end{bmatrix} + 0.0621 \cdot 
+				\begin{bmatrix}
+					0.3301\\
+					-0.6503
+				\end{bmatrix} = 
+				\begin{bmatrix}
+					2.1290\\
+					2.0880
+				\end{bmatrix}\\
+				\mathbf{y_4}&=\mathbf{u_4}+c\mathbf{v_4}=
+				\begin{bmatrix}
+					2.7064\\
+					2.7334
+				\end{bmatrix} + 0.0621 \cdot 
+				\begin{bmatrix}
+					0.1917\\
+					-0.4560
+				\end{bmatrix} = 
+				\begin{bmatrix}
+					2.7183\\
+					2.7051
+				\end{bmatrix}
+			\end{align*}
+	\end{enumerate} 
+	
+	Итак, результатом работы метода является сеточная функция
+	\begin{center}
+	\begin{tabular}{| c | c | c | c | c | c |}
+		\hline
+		$x_i$ & 0.0 & 0.25 & 0.5 & 0.75 & 1.0\\ \hline
+		$y_i$ & 1.0621 & 1.3279 & 1.6755 & 2.1290 & 2.7183\\ \hline
+		$y'_i$ & 0.9379 & 1.2277 & 1.6040 & 2.0880 & 2.7051\\ \hline
+	\end{tabular}
+	\end{center}
+	
+	Фактическое значение погрешности:
+	\begin{center}
+	\begin{tabular}{| c | c | c | c | c | c |}
+		\hline
+		$x$ & 0.0 & 0.25 & 0.5 & 0.75 & 1.0\\ \hline
+		$|y(x)-y_i|$ & 0.0621 & 0.0439 & 0.0268 & 0.0120 & 0.0\\ \hline
+		$|y'(x)-y'_i|$ & 0.621 & 0.0563 & 0.0447 & 0.0290 & 0.0132\\ \hline
+	\end{tabular}
+	\end{center}
+	
+	\section{Подготовка контрольных тестов.}
+	
+	Для построения графиков полученных решений и ошибок были выбраны значения шага $h_1=0.2$ и $h_2=0.1$
+	
+	Для построения графика зависимости фактической ошибки от возмущения начального условия $\Delta A, \Delta B$ были выбраны значения $\Delta A_i=A\cdot10^{-i},\ \Delta B_i=B\cdot 10^{-i}, i=\overline{0,10}$, шаг $h=0.1$
+	
+	Для построения графика зависимости фактической точности от величины шага были выбраны значения шага $h_i=2^{-i}, i=\overline{0,14}$
+	
+	\section{Модульная структура программы.}
+	Для проведения исследования была написана программа на языке C++, состоящая из следующих функций:
+	\begin{itemize}
+		\item ModEulerODE(вх.: вектор-функция $\mathbf{F}(x,\mathbf{y})$, отрезок $[a,b]$, вектор нач. условия $\mathbf{y_0}$, число отрезков разбиения $n$; вых.: сеточная функция $\{(x_i,\mathbf{y_i})\}_{i=0}^n$) -- вычисляет численное решение задачи Коши $\mathbf{y'}=\mathbf{F}(x,\mathbf{y}),\ x\in[a,b]$ с начальным условием $\mathbf{y}(a)=\mathbf{y_0}$ модифицированным методом Эйлера \eqref{modeuler}.
+		\item MakeODEFuncOf2ndOrderODE(вх.: функции $p(x),q(x),r(x),f(x)$; вых.: вектор-функция $\mathbf{F}(x,\mathbf{y})$) -- по коэффициентам $p(x),q(x),r(x)$ и правой части $f(x)$ линейного ДУ 2 порядка строит правую часть $\mathbf{F}(x,\mathbf{y})$ эквивалентной системы ДУ 1 порядка.
+		\item SolveBordaryValueProblem(вх.: функции $p(x),q(x),r(x),f(x)$, отрезок $[a,b]$, числа $\alpha_0$, $\alpha_1$, $A$, $\beta_0$, $\beta_1$, $B$, число отрезков разбиения $n$; вых.: сеточная функция $\{(x_i,\mathbf{y_i})\}_{i=0}^n$) -- вычисляет численное решение краевой задачи \eqref{task} по алгоритму \ref{alghorithm_simple}.
+	\end{itemize}
+	
+	\section{Анализ результатов.}
+	
+	\subsection{Анализ графиков полученного решения.}
+	
+	На графике полученного и точного решений видим, что функция $y^*=e^x$ являющаяся точным решением возрастает на $[0,1]$ и выпукла на $[0,1]$. Точки сеточной функции представляют похожую зависимость, но в правом конце отрезка точно совпадают с функцией $y^*$, а при движении влево начинают отдаляться от точного решения в большую сторону. Решение, полученное для шага $h_2=0.1$ ближе к точному, чем полученное для шага $h_1=0.2$.
+	
+	На графике ошибок полученных решений видим, что с ростом $x$ ошибка возрастает (по абсолютной величине), причем не по линейному закону, а более быстро. Для шага $h_2=0.1$ ошибка меньше и возрастает медленнее, чем для шага $h_1=0.2$. 
+	
+	Порядок использованного для решения задач Коши метода Рунге-Кутты -- 2-ой, поэтому ожидалось, что для шага $h_2=0.1$ вдвое меньшего чем $h_1=0.2$ ошибка уменьшится в 4 раза. На графике видим, что в точке $x=0$, в которой ошибка максимальна для обоих значений шага, для шага $h_2=0.1$ ошибка составляет $0.009$, а для шага $h_1 = 0.2$ -- $0.038$. Видим, что эти ошибки действительно отличаются примерно в 4 раза.
+	
+	\subsection{Анализ зависимости фактической ошибки от возмущения начального условия.}
+	
+	На графике зависимости фактической ошибки от возмущения начального условия $A$ видим, что линия фактической ошибки для $\Delta A < 2\cdot10^{-4}$ проходит горизонтально по значению ошибки $9.0\cdot10^{-3}$ -- той же ошибки, что и для $h=0.1$ без возмущения. Затем после значения $\Delta A = 2\cdot10^4$ линия уходит на локальный минимум $3.6\cdot10^{-3}$ при $\Delta A = 2\cdot10^{-3}$, а затем уходит на возрастание по линейному закону.
+	
+	На графике зависимости фактической ошибки от возмущения начального условия $B$ видим похожую зависимость, но линия не уходит на локальный минимум в том же месте, что и для $A$, а начинает сразу плавно выходить на линейный закон выпуклым образом без экстремумов.
+	
+	\subsection{Анализ зависимости фактической ошибки от величины шага.}
+	
+	На графике зависимости фактической ошибки от величины шага видим, что линия ошибки представляет из себя прямую для $h\leq0.25$, а для больших $h$ отклоняется выпукло от прямой. Прямая параллельна прямой $h^2$ и расположена немного ниже ее (константа немного меньше 1), что подтверждает гипотезу о втором порядке метода модифицированной суперпозиции с использованием модифицированного метода Эйлера для решения задач Коши.
+	
+	\section{Выводы.}
+	
+	\begin{itemize}
+		\item Методы решения задачи Коши для ДУ 1 порядка легко распространяются на ДУ высших порядков; в этом случае в формуле метода вместо чисел $y_i$ следует вычислять векторы $\mathbf{y_i}$, используя аналогичные арифметические операции с векторами.
+		\item Модифицированный метод суперпозиции -- метод решения краевой задачи для линейного ДУ 2 порядка, основанный на сведении краевой задачи к двум задачам Коши.
+		\item Порядок модифицированного метода суперпозиции определяется порядком использованного для решения задач Коши метода.
+	\end{itemize}
+	
+\end{document}

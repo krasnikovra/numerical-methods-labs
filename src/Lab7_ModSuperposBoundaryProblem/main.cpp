@@ -77,7 +77,7 @@ int main() {
     const Vector beta = { 1.0, 0.0 };
     const double A = alpha[0] * solEx(a) + alpha[1] * solExDer(a);
     const double B = beta[0] * solEx(b) + beta[1] * solExDer(b);
-    const size_t nTest = 10;
+    const size_t nTest = 4;
 
     //----------------------- test --------------------------
     const SecOrderODE ode(p, q, r, f);
