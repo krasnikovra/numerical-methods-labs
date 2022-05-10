@@ -167,6 +167,11 @@ GridFunc ModEulerODE(const ODEFunc& f, const Vector y0,
     Vector y = y0;
     GridFunc res = { Point(a, y)};
     for (size_t i = 0; i < n; i++) {
+        //const Vector k1 = f(x, y);
+        //const Vector k2 = f(x + h / 2.0, y + h / 2.0 * k1);
+        //const Vector k3 = f(x + h / 2.0, y + h / 2.0 * k2);
+        //const Vector k4 = f(x + h, y + h * k3);
+        //y = y + h / 6.0 * (k1 + 2 * k2 + 2 * k3 + k4);
         y = y + h * f(x + h / 2.0, y + h / 2.0 * f(x, y));
         x = x + h;
         res.push_back(Point(x, y));
