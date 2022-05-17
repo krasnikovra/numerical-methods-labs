@@ -1,0 +1,11 @@
+**Debug
+**.vcxproj*
+**.sln
+**.vs
+csv
+*.log
+*.aux
+*.pdf
+*.synctex*
+*.toc
+*.eps

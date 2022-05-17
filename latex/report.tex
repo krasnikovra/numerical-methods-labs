@@ -1,0 +1,275 @@
+\documentclass[a4paper, 12pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[russian]{babel}
+\usepackage{amsfonts}
+\usepackage{amsmath} 
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{indentfirst} 
+\usepackage{graphicx}
+\usepackage[justification=centering]{caption}
+\usepackage{float}
+
+\usepackage{geometry} % Меняем поля страницы
+\geometry{left=2cm}% левое поле
+\geometry{right=1.5cm}% правое поле
+\geometry{top=1.5cm}% верхнее поле
+\geometry{bottom=3cm}% нижнее поле
+
+\graphicspath{{./img/}}
+
+\newtheorem{theorem}{Теорема}
+
+\begin{document}
+	% Титульный лист
+	\begin{titlepage}
+		\begin{center}
+			Санкт-Петербургский политехнический университет Петра Великого \\ Физико-механический институт \\ Высшая школа прикладной математики и вычислительной физики
+		\end{center}
+		\vspace{10em}
+		\begin{center}
+			\Large Курсовая работа \\ по дисциплине "Численные методы"
+		\end{center}
+		\vspace{1em}
+		\begin{center}
+			\Huge Сравнение решения задачи Коши для ОДУ 1 порядка модифицированным методом Эйлера и явным методом Адамса 2 порядка.
+		\end{center}
+		\vspace{15em}
+		{\Large 
+			
+			Выполнил: студент гр. 5030102/00003 Красников Р.А.
+			\vspace{1em}
+			
+			Преподаватель: Добрецова С.Б.}
+		\vspace{\fill}
+		\begin{center}
+			Санкт-Петербург \\ 2022
+		\end{center}
+	\end{titlepage}
+	\newpage
+	
+	\tableofcontents
+	
+	\newpage
+	
+	\section{Задание.}
+	
+	Дано обыкновенное дифференциальное уравнение 1 порядка на отрезке. Поставить задачу Коши и найти ее решение
+	\begin{enumerate}
+		\item модифицированным методом Эйлера
+		\item явным методом Адамса 2 порядка
+	\end{enumerate}
+	
+	Провести сравнение результатов по графикам ошибок на отрезке для двух значений шага. Исследовать зависимость нормы погрешности от возмущения начальных условий.
+	
+	\section{Постановка задачи.}
+	
+	Дано обыкновенное дифференциальное уравнение 1 порядка
+	\begin{equation}
+		F(x,y,y')=0,\ x\in[a,b]
+	\end{equation}
+	разрешимое относительно старшей производной, то есть оно может быть записано в виде
+	\begin{equation} \label{eq}
+		y'=f(x,y),\ x\in[a,b]
+	\end{equation}
+	Также задано начальное условие
+	\begin{equation} \label{cond}
+		y(a)=y_0
+	\end{equation}
+	Известно, что существует единственная функция $\varphi(x):[a,b]\rightarrow\mathbb{R}$ -- решение задачи Коши \eqref{eq}, \eqref{cond}, т.е.
+	\begin{equation}
+		\begin{gathered}
+			\forall x\in[a,b]: \varphi'(x)=f(x,\varphi(x)),\\
+			\varphi(a)=y_0
+		\end{gathered}
+	\end{equation}
+
+	Для численного решения задачи также задана сетка $\{x_i\}_{i=0}^n$.
+	
+	Необходимо найти сеточную функцию $\{x_i,y_i\}_{i=0}^n$ такую, что
+	\begin{equation}
+		\forall i=\overline{0,n}: y_i\approx\varphi(x_i)
+	\end{equation}
+
+	\section{Предварительный анализ задачи.}
+	
+	Поставлена задача Коши 
+	\begin{equation}
+		\begin{cases}
+			y'=f(x,y),\ x\in[a,b],\\
+			y(a)=y_0
+		\end{cases}
+	\end{equation}
+	
+	\subsection{Переход к модифицированному методу Эйлера.}
+	
+	Зададимся целью построить явный одношаговый метод 2 порядка:
+	\begin{equation} \label{scheme}
+		y_{k+1}=\Phi_f(h,x_{k},y_{k})
+	\end{equation}
+	В предположении достаточной гладкости функции $y(x)$ запишем ее разложение по формуле Тейлора в окрестности точки $x$, удерживая слагаемые до $o(h^2)$, поскольку строится метод 2 порядка
+	\begin{equation} \label{taylor}
+		y(x+h)=y(x)+\underbrace{\dfrac{h}{1!}y'(x)+\dfrac{h^2}{2!}y''(x)}_{\Delta y(x)}+o(h^2)
+	\end{equation} 
+	Идея методов Рунге-Кутты, к которым относится и модифицированный метод Эйлера, состоит в отыскании функции $\delta y(x)$, отличающейся от $\Delta y(x)$ на бесконечно малую нужного порядка малости, т.е.
+	\begin{equation}
+		\delta y(x) = \Delta y(x) + o(h^2)
+	\end{equation}
+	Если удастся найти $\delta y(x)$ в виде
+	\begin{equation}
+		\delta y(x) = h\sum\limits_{i=1}^l \rho_if(x+\delta x_i, y + \delta y_i)
+	\end{equation}
+	то отбрасыванием $o(h^2)$ из \eqref{taylor} получим метод 2 порядка, удовлетворяющий виду \eqref{scheme}
+	\begin{equation}
+		y_{k+1} = y_{k} + \delta y(x_{k})
+	\end{equation}
+	
+	Обычно, при построении методов Рунге-Кутты, функция $\delta y(x)$ ищется в виде
+	\begin{equation}
+		\begin{gathered}
+			\delta y(x) = h\sum\limits_{i=1}^l\rho_iK_i,\\
+			\begin{dcases}
+				K_1 = f(x,y),\\
+				K_2 = f(x + \alpha_2h, y + \beta_{21}K_1),\\
+				K_3 = f(x + \alpha_3h, y + \beta_{31}K_1 + \beta_{32}K_2),\\
+				...\\
+				K_l = f(x + \alpha_lh, y + \sum\limits_{j=1}^{l-1}\beta_{ji}K_i)
+			\end{dcases}
+		\end{gathered}		
+	\end{equation}
+
+	При непосредственном построении модифицированного метода Эйлера получаем следующие значения:
+	\begin{equation}
+		l=2,\ \rho_1=0,\ \rho_2=1,\ \alpha_2=\beta_{21}=\dfrac{1}{2}
+	\end{equation}
+
+	\subsection{Переход к явному методу Адамса 2 порядка.}
+	
+	Проинтегрируем уравнение $y'=f(x,y)$ по отрезку $[x_{k-1}, x_k]$:
+	\begin{equation} \label{int_adams}
+		y_k=y_{k-1}+\int\limits_{x_{k-1}}^{x_k}f(x,y(x))dx=y_{k-1}+\int\limits_{x_{k-1}}^{x_k}F(x)dx
+	\end{equation}
+	Будем строить $r$-шаговый метод.
+	
+	Аппроксимируем функцию $F(x)$ интерполяционным полиномом Лагранжа $L_m(x)$ на сеточной функции $\{\overline{x}_i, F_i\}_{i=0}^m$, где $F_i= F(\overline{x}_i,y(\overline{x}_i))$.
+	\begin{equation}
+		F(x) = L_m(x) + R_m(x)
+	\end{equation} 
+	и подставим в \eqref{int_adams}
+	\begin{equation}
+		y_k=y_{k-1}+\underbrace{\int\limits_{x_{k-1}}^{x_k}L_m(x)dx}_{I_1} + \underbrace{\int\limits_{x_{k-1}}^{x_k}R_m(x)dx}_{I_2}
+	\end{equation}
+	Здесь $\{\overline{x}_i\}_{i=0}^m$ -- сетка, такая что $\overline{x}_r=\overline{x}_0+hr=x_0+hk=x_k$. Не для всех $x_k$ такую сетку можно построить, поэтому для методов Адамса требуется вычислять разгонные точки.
+	Пренебрежем интегралом $I_2$ от остаточного члена полинома Лагранжа, а в интеграле $I_1$ выполним замену переменной по формуле $x=\overline{x}_0+ht$
+	\begin{equation}
+		I_1=\int\limits_{\overline{x}_{r-1}}^{\overline{x}_r}L_m(x)dx=h\int\limits_{r-1}^{r}L_m(\overline{x}_0+ht)dt
+	\end{equation}
+	По формуле полинома Лагранжа на равномерной сетке
+	\begin{equation}
+		I_1=h\int\limits_{r-1}^{r}\sum\limits_{j=0}^mF_j\frac{(-1)^{m-j}}{(m-j)!j!}\frac{\overline{\omega}(t)}{t-j}dt,
+	\end{equation}
+	где $\displaystyle \overline{\omega}(t)=t(t-1)\dots(t-m)=\prod\limits_{j=0}^m(t-j)$. Упростим выражение
+	\begin{equation}
+		I_1=h\sum\limits_{j=0}^m\underbrace{\bigg[\frac{(-1)^{m-j}}{(m-j)!j!}\int\limits_{r-1}^r\frac{\overline{\omega}(t)}{t-j}dt\bigg]}_{\beta_j}F_j=h\sum\limits_{j=0}^m\beta_{j}F_j
+	\end{equation}
+	Получили метод
+	\begin{equation}
+		y_{k}=y_{k-1}+\sum\limits_{j=0}^m\beta_jf(x_{k-r+j}, y_{k-r+j})
+	\end{equation}
+
+	Мы строили явный метод Адамса 2 порядка. Чтобы удовлетворить требованию второго порядка аппроксимации нужно потребовать $m=1$ -- степень полинома Лагранжа. Метод должен быть явным, т.е. в правой части не должно содержаться слагаемого с номером $r$, поэтому $m=r-1\Rightarrow r=2$ -- явный метод Адамса 2 порядка двухшаговый. Значение $m=r-1$ соответствует экстраполяции полиномом Лагранжа значения функции $F$ в узле $x_k$, а $m=r$ -- интерполяции.
+	
+	При непосредственном построении явного метода Адамса 2 порядка получаем следующие значения
+	\begin{equation}
+		\beta_0 = -\dfrac{1}{2},\ \beta_1 = \dfrac{3}{2}
+	\end{equation}
+
+	\section{Алгоритмы методов.}
+	
+	\subsection{Модифицированный метод Ньютона.}
+	
+	\begin{enumerate}
+		\item Ввести функцию $f(x,y)$, начальное условие $y_0$, отрезок $[a,b]$, число отрезков разбиения $m$ (число точек равномерной сетки составит $m+1$).
+		\item Для всех $i=\overline{1,m}$ вычислить
+		\begin{equation} \label{euler_method}
+			y_i = y_{i-1} + hf(x_{i-1} + \frac{h}{2}, y_{i-1}+\frac{h}{2}f(x_{i-1},y_{i-1}))
+		\end{equation}
+		где $h=\dfrac{b-a}{m}$, $x_i=a+ih$.
+		\item $\{(x_i,y_i)\}_{i=0}^m$ -- искомая сеточная функция
+	\end{enumerate}
+
+	\subsection{Явный метод Адамса 2 порядка.}
+	
+	\begin{enumerate}
+		\item Ввести функцию $f(x,y)$, начальное условие $y_0$, отрезок $[a,b]$, число отрезков разбиения $m$ (число точек равномерной сетки составит $m+1$).
+		\item Вычислить разгонную точку (с помощью модифицированного метода Эйлера):
+		\begin{equation} \label{euler_boost}
+			y_1 = y_0 + hf(x_0 + \frac{h}{2}, y_0+\frac{h}{2}f(x_0,y_0)),
+		\end{equation}
+		где $h=\dfrac{b-a}{m}$, $x_i=a+ih$.
+		\item Для всех $i=\overline{2,m}$ вычислить
+		\begin{equation} \label{adams_method}
+			y_i = y_{i-1} + \frac{h}{2}(3f(x_{i-1},y_{i-1})-f(x_{i-2}, y_{i-2}))
+		\end{equation}
+		\item $\{(x_i,y_i)\}_{i=0}^m$ -- искомая сеточная функция
+	\end{enumerate}
+	
+	\section{Контрольные тесты.}
+	
+	\subsection{Решаемая задача Коши.}
+	
+	Исследование проведено для задачи Коши
+	\begin{equation} \label{mytask}
+		\begin{cases}
+			xy'-2x^2\sqrt{y}=4y,\ x\in[1,2],\\
+			y(1)=1
+		\end{cases}
+	\end{equation}
+	Ее точное решение $\varphi(x)=x^4(lnx+1)^2$.
+	
+	\subsection{Численные эксперименты.}
+	
+	Графики полученных решений и их ошибок построены для шагов $h_1=0.2$ и $h_2=0.1$.
+	
+	Для исследования зависимости нормы погрешности от возмущения начальных условий были выбраны значения шага $h=0.1$ и возмущений начального условия $\Delta y_0=2^{-i}, i=\overline{0,15}$. Были проведены 2 эксперимента: для возмущений вида $y_0+\Delta y_0$ и $y_0-\Delta y_0$. 
+	
+	\section{Численный анализ.}
+	
+	\subsection{Анализ полученных решений и их погрешностей.}
+	
+	Полученные в процессе исследования графики решений задачи Коши \eqref{mytask} представлены на рисунке \ref{fig:ans}.
+	
+	\begin{figure}[H]\centering
+		\includegraphics[width=.49\textwidth]{ans_Euler}
+		\includegraphics[width=.49\textwidth]{ans_Adams}
+		\caption{Решения, полученные модифицированным методом Эйлера (слева) и явным методом Адамса 2 порядка (справа).}\label{fig:ans}
+	\end{figure}
+
+	На графиках полученных решений видим, что для всех шагов оба метода дают решение, значения которого в узлах меньше, чем точное. Приближенное решение как бы "не успевает"\ за ростом точного. Графики погрешностей данных решений представлены на рисунке \ref{fig:err}.
+	
+	\begin{figure}[H]\centering
+		\includegraphics[width=.49\textwidth]{err_Euler}
+		\includegraphics[width=.49\textwidth]{err_Adams}
+		\caption{Ошибки решений, полученных модифицированным методом Эйлера (слева) и явным методом Адамса 2 порядка (справа).}\label{fig:err}
+	\end{figure}
+
+	На графиках погрешностей полученных решений видим, что погрешности для всех шагов и методов возрастают быстрее, чем линейно. Модифицированный метод Эйлера и исследованный явный метод Адамса имеют 2 порядок аппроксимации, значит при уменьшении шага в 2 раза (c $0.2$ до $0.1$) ошибка должна была уменьшиться приблизительно в 4 раза. 
+	
+	Например, в точке $b=2$ видим, что для модифицированного метода Эйлера ошибка уменьшилась приблизительно в $5.4/1.7\approx3.2$ раза, а для явного метода Адамса 2 порядка -- приблизительно в $8.5/3.0\approx2.8$ раза. Это объясняется тем, что выражение для погрешности имеет вид $Ch^2$ только при достаточно малых $h$, а в общем случае имеет вид $Ch^2 + o(h^2)$ -- в проведенном эксперименте $h$ еще достаточно велико и $o(h^2)$ дает ощутимую поправку. На рисунке \ref{fig:err_on_h} можно видеть, что для шага $0.1$ и больше зависимость действительно отклоняется от прямой $y=Ch^2$ вогнутым образом.
+	
+	\begin{figure}[H]\centering
+		\includegraphics[width=.75\textwidth]{err_on_h}
+		\caption{Зависимость бесконечной нормы погрешности решения от шага.}\label{fig:err_on_h}
+	\end{figure}
+	
+	Также отметим, что для одних и тех же значений шага модифицированный метод Эйлера дал более точный результат, чем явный метод Адамса 2 порядка. Этот результат вполне ожидаем, поскольку модифицированный метод Эйлера требует двух вычислений значения функции $f(x,y)$ на каждой итерации, в то время как явный метод Адамса 2 порядка -- только одного вычисления (кроме итерации для вычисления разгонной точки и первой итерации вычисления непосредственно по формуле явного метода Адамса \eqref{adams_method}).
+	
+	\subsection{Анализ зависимости нормы погрешности от возмущения начальных условий.}
+
+	\begin{figure}[H]\centering
+		\includegraphics[width=.49\textwidth]{err_on_dyplus}
+		\includegraphics[width=.49\textwidth]{err_on_dyminus}
+		\caption{Зависимости бесконечной нормы погрешности решения от возмущения начального условия вида $y_0+\Delta y_0$ (слева) и $y_0-\Delta y_0$ (справа).}\label{fig:err_on_dy}
+	\end{figure}
+	
+\end{document}
