@@ -18,8 +18,8 @@ y2 = csv2(:,2);
 
 figure
 plot(x, f(x), ...
-     x1, y1, '--*', ...
-     x2, y2, '--*')
+     x1, y1, 'r-.s', ...
+     x2, y2, 'g-.s')
 title("Решения, явный метод Адамса 2-го порядка")
 xlabel('$$x$$')
 ylabel('$$y$$')
@@ -28,15 +28,3 @@ legend("Точное решение", "6 точек (h=0.2)", "11 точек (h=
 grid on
 
 print -depsc ../latex/img/ans_Adams.eps
-
-figure 
-plot(x1, abs(f(x1)-y1), 'r--*',...
-     x2, abs(f(x2)-y2), 'y--*')
-title("Ошибки, явный метод Адамса 2-го порядка")
-xlabel('$$x$$')
-ylabel('$$f(x_i)-y_i$$')
-legend("6 точек (h=0.2)", "11 точек (h=0.1)",...
-       'location', 'northwest')
-grid on
-
-print -depsc ../latex/img/err_Adams.eps

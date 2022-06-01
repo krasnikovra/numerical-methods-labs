@@ -14,12 +14,15 @@ errEuler = csvEuler(:,2);
 errAdams = csvAdams(:,2);
 
 figure
-loglog(dyEuler, errEuler,...
-       dyAdams, errAdams)
+loglog(dyEuler, errEuler, 'b',...
+       dyEuler, 1.763 * ones(size(dyEuler)), 'b--',...
+       dyAdams, errAdams, 'r',...
+       dyAdams, 3.055 * ones(size(dyAdams)), 'r--')
 title("Возмущение начального условия")
 xlabel("$$-\Delta y_0$$")
 ylabel("$$\max\limits_{i=\overline{0,10}}|f(x_i)-y_i|$$")
-legend("Мод. метод Эйлера", "Метод Адамса", 'location', 'northwest')
+legend("Мод. метод Эйлера", "Мод. метод Эйлера, без возмущения", "Метод Адамса", "Метод Адамса, без возмущения",...
+       'location', 'northwest')
 grid on
 
 print -depsc ../latex/img/err_on_dyminus.eps

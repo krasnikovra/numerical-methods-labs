@@ -54,10 +54,10 @@ int main() {
     const vector<size_t> ns = { 5, 10 };
     const size_t n = 10;
     const double dy0 = y0;
-    const size_t dySteps = 15;
+    const size_t dySteps = 85;
 
     const size_t n0 = 1;
-    const size_t nSteps = 10;
+    const size_t nSteps = 7;
 
     cout << "Adams" << endl;
     GridFunc ans = AdamsODE(ode, y0, a, b, 10);
@@ -74,6 +74,10 @@ int main() {
         WriteErrorOnDy(ROOT"csv/err_on_dyplus_Euler.csv", ModEulerODE, y, ode, y0, a, b, n, dy0, dySteps, Sign::Plus);
         WriteErrorOnDy(ROOT"csv/err_on_dyminus_Euler.csv", ModEulerODE, y, ode, y0, a, b, n, dy0, dySteps, Sign::Minus);
         WriteErrorOnH(ROOT"csv/err_on_h_Euler.csv", ModEulerODE, y, ode, y0, a, b, n0, nSteps);
+
+        // lucky disturbance case
+        WriteODESolutions(ROOT"csv/ans_Adams_disturbed", AdamsODE, ode, y0 + 0.1, a, b, { 10 });
+        WriteODESolutions(ROOT"csv/ans_Euler_disturbed", ModEulerODE, ode, y0 + 0.1, a, b, { 10 });
     }
     catch (const string& err) {
         cout << "Error occured:" << endl << err << endl;
@@ -180,7 +184,7 @@ void WriteErrorOnDy(const string& filename,
     double dy = dy0;
     for (size_t i = 0; i < dySteps; i++) {
         file << dy << ";" << MaxError(sol, Method(f, sign == Sign::Plus ? y0 + dy : y0 - dy, a, b, n)) << endl;
-        dy /= 2;
+        dy /= 1.1;
     }
     file.close();
 }
