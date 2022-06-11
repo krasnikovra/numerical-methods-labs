@@ -1,5 +1,5 @@
 close all ; clear all; clc;
-set(0,'DefaultTextInterpreter', 'latex');
+%set(0,'DefaultTextInterpreter', 'latex');
 set(groot, 'defaultAxesTickLabelInterpreter','latex'); 
 set(groot, 'defaultLegendInterpreter','latex');
 %set(0,'DefaultAxesFontSize',12);
@@ -18,7 +18,7 @@ loglog(dyEuler, errEuler, 'b',...
        dyEuler, 1.763 * ones(size(dyEuler)), 'b--',...
        dyAdams, errAdams, 'r',...
        dyAdams, 3.055 * ones(size(dyAdams)), 'r--')
-title("Возмущение начального условия")
+title("Возмущение начального условия, шаг 0.1")
 xlabel("$$-\Delta y_0$$")
 ylabel("$$\max\limits_{i=\overline{0,10}}|f(x_i)-y_i|$$")
 legend("Мод. метод Эйлера", "Мод. метод Эйлера, без возмущения", "Метод Адамса", "Метод Адамса, без возмущения",...

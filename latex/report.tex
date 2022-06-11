@@ -132,28 +132,40 @@
 	\begin{equation}
 		\delta y(x) = h\sum\limits_{i=1}^l \rho_if(x+\delta x_i, y + \delta y_i)
 	\end{equation}
-	то отбрасыванием $o(h^2)$ из \eqref{taylor} получим метод 2 порядка, удовлетворяющий виду \eqref{scheme}
+	то отбрасыванием $o(h^2)$ из \eqref{taylor} и заменой $y(x+h) \rightarrow y_{k+1}$, $y(x)\rightarrow y_k$, $\delta(x)\rightarrow \delta(x_k)$ получим метод 2 порядка, удовлетворяющий виду \eqref{scheme}
 	\begin{equation}
 		y_{k+1} = y_{k} + \delta y(x_{k})
 	\end{equation}
 	
-	Обычно, при построении методов Рунге-Кутты, функция $\delta y(x)$ ищется в виде
+	Будем искать $\delta y(x_k)$ в виде
 	\begin{equation}
 		\begin{gathered}
-			\delta y(x) = h\sum\limits_{i=1}^l\rho_iK_i,\\
+			\delta y(x_k) = h(\rho_1K_1 + \rho_2K_2)\\
 			\begin{dcases}
-				K_1 = f(x,y),\\
-				K_2 = f(x + \alpha_2h, y + \beta_{21}K_1),\\
-				K_3 = f(x + \alpha_3h, y + \beta_{31}K_1 + \beta_{32}K_2),\\
-				...\\
-				K_l = f(x + \alpha_lh, y + \sum\limits_{j=1}^{l-1}\beta_{ji}K_i)
+				K_1 = f(x_k,y_k),\\
+				K_2 = f(x_k + \alpha_2h, y_k + \beta_{21}K_1)
 			\end{dcases}
 		\end{gathered}		
 	\end{equation}
 
-	При непосредственном построении модифицированного метода Эйлера получаем следующие значения:
+	Формулы для неизвестных получаются следующим образом. Сравнивая выражения для $\Delta y(x)$ и $\delta y(x)$
+	\begin{gather}
+		\Delta y(x) = hf + \frac{h^2}{2}\bigg(\frac{\partial f}{\partial x} + f\frac{\partial f}{\partial y}\bigg)\\
+		\delta y(x) = h(\rho_1 + \rho_2)f + h^2\alpha_2\rho_2\frac{\partial f}{\partial x}+h^2\beta_{21}\rho_2f\frac{\partial f}{\partial y}+o(h^2)
+	\end{gather} 
+	получаем СЛАУ
 	\begin{equation}
-		l=2,\ \rho_1=0,\ \rho_2=1,\ \alpha_2=\beta_{21}=\dfrac{1}{2}
+		\begin{dcases}
+			\rho_1 + \rho_2 = 1,\\
+			\alpha_2\rho_2 = \frac{1}{2},\\
+			\beta_{21}\rho_2 = \frac{1}{2}
+		\end{dcases}
+	\end{equation}
+	В этой СЛАУ число неизвестных больше числа уравнений, поэтому полагаем $\rho_2=p$, тогда $\rho_1=1-p$, $\alpha_2=\beta_{21}=\dfrac{1}{2p}$.
+
+	Модифицированным методом Эйлера называется метод Рунге-Кутты 2 порядка с $p=1$. Подставляя $p=1$ получаем следующие значения для неизвестных:
+	\begin{equation}
+		\rho_1=0,\ \rho_2=1,\ \alpha_2=\beta_{21}=\dfrac{1}{2}
 	\end{equation}
 
 	\subsection{Переход к явному методу Адамса 2 порядка.}
@@ -162,37 +174,37 @@
 	\begin{equation} \label{int_adams}
 		y_k=y_{k-1}+\int\limits_{x_{k-1}}^{x_k}f(x,y(x))dx=y_{k-1}+\int\limits_{x_{k-1}}^{x_k}F(x)dx
 	\end{equation}
-	Будем строить $r$-шаговый метод.
+	Будем строить явный метод 2 порядка.
 	
-	Аппроксимируем функцию $F(x)$ интерполяционным полиномом Лагранжа $L_m(x)$ на сеточной функции $\{\overline{x}_i, F_i\}_{i=0}^m$, где $F_i= F(\overline{x}_i)$.
+	Аппроксимируем функцию $F(x)$ интерполяционным полиномом Лагранжа $L_1(x)$ на сеточной функции $\{\overline{x}_i, F_i\}_{i=0}^1$, где $F_i= F(\overline{x}_i)$.
 	\begin{equation}
-		F(x) = L_m(x) + R_m(x)
+		F(x) = L_1(x) + R_1(x)
 	\end{equation} 
 	и подставим в \eqref{int_adams}
 	\begin{equation}
-		y_k=y_{k-1}+\underbrace{\int\limits_{x_{k-1}}^{x_k}L_m(x)dx}_{I_1} + \underbrace{\int\limits_{x_{k-1}}^{x_k}R_m(x)dx}_{I_2}
+		y_k=y_{k-1}+\underbrace{\int\limits_{x_{k-1}}^{x_k}L_1(x)dx}_{I_1} + \underbrace{\int\limits_{x_{k-1}}^{x_k}R_1(x)dx}_{I_2}
 	\end{equation}
-	Здесь $\{\overline{x}_i\}_{i=0}^m$ -- сетка, такая что $\overline{x}_r=\overline{x}_0+hr=x_0+hk=x_k$. Не для всех $x_k$ такую сетку можно построить, поэтому для методов Адамса требуется вычислять разгонные точки.
+	Здесь $\{\overline{x}_i\}_{i=0}^2$ -- сетка, такая что $\overline{x}_2=\overline{x}_0+2h=x_0+hk=x_k$, (то есть эта сетка состоит из точек $x_{k-2}$, $x_{k-1}$, $x_{k}$). При этом интерполяционный полином строится по точкам $x_{k-1}$ и $x_{k-2}$ (а не по $x_{k}$ и $x_{k-1}$), поскольку строим явный метод, то есть значение функции $F(x)$ в узле $x_k$ экстраполируется. Не для всех $x_k$ такую сетку можно построить, поэтому для явного метода Адамса 2 порядка требуется вычислять одну разгонную точку.
 	Пренебрежем интегралом $I_2$ от остаточного члена полинома Лагранжа, а в интеграле $I_1$ выполним замену переменной по формуле $x=\overline{x}_0+ht$
 	\begin{equation}
-		I_1=\int\limits_{\overline{x}_{r-1}}^{\overline{x}_r}L_m(x)dx=h\int\limits_{r-1}^{r}L_m(\overline{x}_0+ht)dt
+		I_1=\int\limits_{\overline{x}_{1}}^{\overline{x}_2}L_1(x)dx=h\int\limits_{1}^{2}L_m(\overline{x}_0+ht)dt
 	\end{equation}
 	По формуле для полинома Лагранжа на равномерной сетке
 	\begin{equation}
-		I_1=h\int\limits_{r-1}^{r}\sum\limits_{j=0}^mF_j\frac{(-1)^{m-j}}{(m-j)!j!}\frac{\overline{\omega}(t)}{t-j}dt,
+		I_1=h\int\limits_{1}^{2}\sum\limits_{j=0}^1F_j\frac{(-1)^{1-j}}{(1-j)!j!}\frac{\overline{\omega}(t)}{t-j}dt,
 	\end{equation}
-	где $\displaystyle \overline{\omega}(t)=t(t-1)\dots(t-m)=\prod\limits_{j=0}^m(t-j)$. Упростим выражение
+	где $\displaystyle \overline{\omega}(t)=t(t-1)$. Упростим выражение
 	\begin{equation}
-		I_1=h\sum\limits_{j=0}^m\underbrace{\bigg[\frac{(-1)^{m-j}}{(m-j)!j!}\int\limits_{r-1}^r\frac{\overline{\omega}(t)}{t-j}dt\bigg]}_{\beta_j}F_j=h\sum\limits_{j=0}^m\beta_{j}F_j
+		\begin{gathered}
+		I_1=h\sum\limits_{j=0}^1\underbrace{\bigg[\frac{(-1)^{1-j}}{(1-j)!j!}\int\limits_{1}^2\frac{\overline{\omega}(t)}{t-j}dt\bigg]}_{\beta_j}F_j=\\=h\bigg(\underbrace{\frac{-1}{1!\cdot0!}\int\limits_1^2(t-1)dt}_{\beta_0}\cdot F_0 + \underbrace{\frac{1}{0!\cdot1!}\int\limits_1^2tdt}_{\beta_1}\cdot F_1\bigg)=h(\beta_{0}F_0+\beta_{1}F_1)
+		\end{gathered}
 	\end{equation}
 	Получили метод
 	\begin{equation}
-		y_{k}=y_{k-1}+h\sum\limits_{j=0}^m\beta_jf(x_{k-r+j}, y_{k-r+j})
-	\end{equation}
-
-	Мы строили явный метод Адамса 2 порядка. Чтобы удовлетворить требованию второго порядка аппроксимации нужно потребовать $m=1$ -- степень полинома Лагранжа. Метод должен быть явным, т.е. в правой части не должно содержаться слагаемого с номером $r$, или, что равносильно, сетка $\{\overline{x}_i\}_{i=0}^m$ не должна включать в себя $x_k$ (т.е. значение функции $F(x)$ в точке $x_k$ не интерполируется, а экстраполируется), поэтому $m=r-1\Rightarrow r=2$ -- явный метод Адамса 2 порядка двухшаговый. 
+		y_{k}=y_{k-1}+h(\beta_0f(x_{k-2}, y_{k-2})+\beta_1f(x_{k-1}, y_{k-1}))
+	\end{equation} 
 	
-	При непосредственном построении явного метода Адамса 2 порядка получаем следующие значения
+	Вычисляя значения $\beta_0$ и $\beta_1$, получаем
 	\begin{equation}
 		\beta_0 = -\dfrac{1}{2},\ \beta_1 = \dfrac{3}{2}
 	\end{equation}
@@ -221,7 +233,18 @@
 		\end{equation}
 	\end{theorem}
 	
-	При анализе задачи область значений решения неизвестна. В связи с этим нужно потребовать чтобы условия теорем выполнялись для достаточно больших отрезков $[c,d] \supset E(\varphi)$, где $E(\varphi)$ -- область значений точного решения $\varphi(x)$ задачи Коши \eqref{eq:cauchy_task}. Таким образом, достаточное условие единственности задачи Коши
+	При анализе задачи область значений решения неизвестна. В связи с этим нужно потребовать, чтобы условия теорем выполнялись для достаточно больших отрезков $[c,d] \supset E(\varphi)$, где $E(\varphi)$ -- область значений точного решения $\varphi(x)$ задачи Коши \eqref{eq:cauchy_task}.
+	
+	При этом ограниченности частной производной по $x$ требовать не обязательно. Например, единственным решением задачи Коши
+	\begin{equation}
+		\begin{dcases}
+			y' = \sqrt{x}, x\in[0,1],\\
+			y(0) = 0
+		\end{dcases}
+	\end{equation}
+	является функция $\varphi(x)=\dfrac{2}{3}x\sqrt{x}$, но $\dfrac{\partial}{\partial x} (\sqrt{x})=\dfrac{1}{2\sqrt{x}} \xrightarrow[x\rightarrow+0]{}+\infty$, а в самой точке $0$ функция $\dfrac{1}{2\sqrt{x}}$ и вовсе не определена. 
+	
+	Таким образом, достаточное условие единственности задачи Коши
 	\begin{enumerate}
 		\item $\dfrac{\partial f}{\partial y}$ непрерывна
 	\end{enumerate}
@@ -240,27 +263,31 @@
 	
 	\subsection{Алгоритмы исследуемых методов.}
 	
+	Для обоих исследуемых алгоритмов первый шаг одинаков:
+	\begin{enumerate}
+		\item Ввести функцию $f(x,y)$, начальное условие $y_0$, отрезок $[a,b]$, число отрезков разбиения $m$.
+	\end{enumerate}
+	Число точек равномерной сетки составит $m+1$, шаг $h=\dfrac{b-a}{m}$, а узлы сетки вычисляются по формуле $x_i=a+ih$.	
+	
 	\subsubsection{Модифицированный метод Ньютона.}
 	
 	\begin{enumerate}
-		\item Ввести функцию $f(x,y)$, начальное условие $y_0$, отрезок $[a,b]$, число отрезков разбиения $m$ (число точек равномерной сетки составит $m+1$).
+		\setcounter{enumi}{1}
 		\item Для всех $i=\overline{1,m}$ вычислить
 		\begin{equation} \label{euler_method}
 			y_i = y_{i-1} + hf(x_{i-1} + \frac{h}{2}, y_{i-1}+\frac{h}{2}f(x_{i-1},y_{i-1}))
 		\end{equation}
-		где $h=\dfrac{b-a}{m}$, $x_i=a+ih$.
 		\item $\{(x_i,y_i)\}_{i=0}^m$ -- искомая сеточная функция
 	\end{enumerate}
 
 	\subsubsection{Явный метод Адамса 2 порядка.}
 	
 	\begin{enumerate}
-		\item Ввести функцию $f(x,y)$, начальное условие $y_0$, отрезок $[a,b]$, число отрезков разбиения $m$ (число точек равномерной сетки составит $m+1$).
+		\setcounter{enumi}{1}
 		\item Вычислить разгонную точку (с помощью модифицированного метода Эйлера):
 		\begin{equation} \label{euler_boost}
 			y_1 = y_0 + hf(x_0 + \frac{h}{2}, y_0+\frac{h}{2}f(x_0,y_0)),
 		\end{equation}
-		где $h=\dfrac{b-a}{m}$, $x_i=a+ih$.
 		\item Для всех $i=\overline{2,m}$ вычислить
 		\begin{equation} \label{adams_method}
 			y_i = y_{i-1} + \frac{h}{2}(3f(x_{i-1},y_{i-1})-f(x_{i-2}, y_{i-2}))
@@ -279,6 +306,8 @@
 	Также оба исследуемых метода имеют 2 порядок аппроксимации, поэтому ожидается, что норма глобальной погрешности при уменьшении шага в 2 раза уменьшится приблизительно в 4 раза.
 	
 	\subsubsection{Исследование зависимости нормы погрешности от возмущения начального условия.}
+	
+	\paragraph{Устойчивость задачи Коши по начальному условию.} 
 	
 	Рассмотрим задачу Коши, зависящую от параметра
 	\begin{equation} \label{eq:cauchy_param}
@@ -300,7 +329,7 @@
 		\end{cases}
 	\end{equation} считаем $y_0$ параметром. Выполним замену переменных по формулам $\widetilde{x} = x - a$, $\widetilde{y}(\widetilde{x}, y_0) = y(x) - y_0 = y(\widetilde{x} + a) - y_0$. Тогда правая часть запишется в виде $f(\widetilde{x} + a, \widetilde{y} + y_0)$.
 
-	В новых переменных имеем задачу Коши, зависящую от параметра $y_9$
+	В новых переменных имеем задачу Коши, зависящую от параметра $y_0$
 	\begin{equation}
 		\begin{cases} \label{eq:cauchy_task_tilde}
 			y' = f(\widetilde{x} + a, \widetilde{y} + y_0),\\
@@ -312,7 +341,79 @@
 	
 	Это значит, что интегральная кривая, проходящая через точку $(a, y_0 \pm \Delta y_0)$ для небольших $\Delta y_0$ расположена на небольшом расстоянии от кривой, проходящей через точку $(a, y_0)$. Если в начальное условие задачи внесено небольшое возмущение, то интегральная кривая, являющаяся пределом последовательности, построенной каждым из методов, при $h \rightarrow 0$, не сильно отстоит от точного решения.
 	
-	Таким образом, ожидается, что оба исследуемых метода устойчивы по начальному условию.
+	\paragraph{Устойчивость модифицированного метода Эйлера по начальному условию.}
+	
+	Рассмотрим для произвольного числа $n+1$ точек равномерной сетки численное решение $\{x_i, y_i\}_{i=0}^n$, полученное модифицированным методом Эйлера для задачи Коши с невозмущенным начальным условием $y(a)=y_0$ и численное решение $\{x_i, \widetilde{y}_i\}_{i=0}^n$, полученное для возмущенного начального условия $y(a)=\widetilde{y}_0=y_0 + \Delta y_0$. Обозначим
+	\begin{equation}
+		\begin{gathered}
+			F(x,y) = f(x + \frac{h}{2}, y+\frac{h}{2}f(x,y)),\\
+			F_k = F(x_k, y_k),\\
+			\widetilde{F}_k = F(x_k, \widetilde{y}_k)
+		\end{gathered}
+	\end{equation}
+	Теперь, в точке $x_1$ получим значения $y_1$, $\widetilde{y}_1$ решений невозмущенной и возмущенной задачи соответственно по формулам
+	\begin{equation} \label{y1_dist_notdist}
+		\begin{gathered}
+			y_1 = y_0 + hF_0,\\
+			\widetilde{y}_1 = \widetilde{y}_0 + h\widetilde{F}_0
+		\end{gathered}
+	\end{equation}
+	Обозначим $\varepsilon_i = |y_i - \widetilde{y}_i|$ -- ошибка в $i$-ом узле сетки, обусловленная внесением возмущения в начальное условие. Тогда из \eqref{y1_dist_notdist} вычитанием и применением неравенства треугольника получаем
+	\begin{equation} \label{epsilons10}
+		\varepsilon_1 \leq \varepsilon_0  + h|F_0-\widetilde{F_0}|
+	\end{equation}
+	Оценим величину $|F_i-\widetilde{F_i}|$ для произвольного $i$, пользуясь условием Липшица по $y$ для $f(x,y)$:
+	\begin{equation}
+		\begin{gathered}
+			|F_i-\widetilde{F_i}|=\\=|f(x_i + \frac{h}{2}, y_i+\frac{h}{2}f(x_i,y_i))-f(x_i + \frac{h}{2}, \widetilde{y}_i+\frac{h}{2}f(x_i,\widetilde{y}_i))| \leq \\ \leq L|y_i-\widetilde{y}_i|+L\frac{h}{2}|f(x_i,y_i)-f(x_i,\widetilde{y}_i)| \leq \\ \leq
+			L\varepsilon_i + L^2\frac{h}{2}|y_i-\widetilde{y}_i| = \\ =
+			L\varepsilon_i + L^2\frac{h}{2}\varepsilon_i = \\ =
+			\bigg(L + \frac{h}{2}L^2\bigg)\varepsilon_i
+		\end{gathered}
+	\end{equation}
+	Таким образом, имеем
+	\begin{equation}
+		|F_i-\widetilde{F}_i| \leq \bigg(L + \frac{h}{2}L^2\bigg)\varepsilon_i
+	\end{equation}
+	Подставим это выражение в \eqref{epsilons10}, имеем
+	\begin{equation} \label{eps1limit}
+		\varepsilon_1 \leq \varepsilon_0 + h\bigg(L+\frac{h}{2}L^2\bigg)\varepsilon_0=\bigg(1 + hL + \frac{h^2}{2}L^2\bigg)\varepsilon_0
+	\end{equation}
+	Для произвольных $i$ \eqref{eps1limit} записывается аналогично, поэтому
+	\begin{equation}
+		\begin{gathered}
+			\varepsilon_n \leq \bigg(1 + hL + \frac{h^2}{2}L^2\bigg)\varepsilon_{n-1} \leq \\ \leq \bigg(1 + hL + \frac{h^2}{2}L^2\bigg)^2\varepsilon_{n-2} \leq \\ \leq \dots \leq \\ \leq  \bigg(1 + hL + \frac{h^2}{2}L^2\bigg)^n\varepsilon_{0} \leq \\ \leq e^{nhL}\varepsilon_{0} = e^{(b-a)L}\varepsilon_{0}=e^{(b-a)L}|\Delta y_0|
+		\end{gathered}
+	\end{equation}
+
+	Таким образом, в численном решении возмущенной задачи Коши накапливается "дополнительная"\ (вызванная возмущением начального условия) погрешность, ограниченная сверху линейной зависимостью от абсолютной величины возмущения начального условия $\Delta y_0$. Ожидается, что модифицированный метод Эйлера устойчив по начальному условию
+	
+	\paragraph{Устойчивость явного метода Адамса 2 порядка по начальному условию.}
+	
+	Рассмотрение происходит во введенных ранее обозначениях. 
+	
+	Теперь, в точке $x_1$ значения $y_1$, $\widetilde{y}_1$ решений невозмущенной и возмущенной задачи соответственно получаются по формулам
+	\begin{equation} \label{adamsdist}
+		\begin{gathered}
+			y_i = y_{i-1} + \frac{h}{2}(3f(x_{i-1}, y_{i-1})-f(x_{i-2}, y_{i-2})),\\
+			\widetilde{y}_i = y_i = \widetilde{y}_{i-1} + \frac{h}{2}(3f(x_{i-1}, \widetilde{y}_{i-1})-f(x_{i-2}, \widetilde{y}_{i-2}))
+		\end{gathered}
+	\end{equation}
+	Далее из \eqref{adamsdist} для $i=n$ вычитанием, применением неравенства треугольника и условия Липшица по $y$ для функции $f(x,y)$ получаем
+	\begin{equation}
+		\begin{gathered}
+			\varepsilon_i \leq \varepsilon_{i-1} + \frac{3hL}{2}\varepsilon_{i-1} + \frac{hL}{2}\varepsilon_{i-2} \leq \\ \leq
+			\varepsilon_{i-1} + \frac{3hL}{2}\varepsilon_{i-1} + \frac{hL}{2}\varepsilon_{i-1} \leq \\ \leq
+			(1 + 2hL)\varepsilon_{i-1} \leq \\ \leq (1+2hL)^2\varepsilon_{i-2} \leq \\ \leq \dots \leq \\ \leq
+			(1 + 2hL)^{n-1}\varepsilon_{1} \leq \\ \leq e^{2(n-1)hL}\varepsilon_{1} \leq \\ \leq
+			e^{2(n-1)hL}e^{hL}\varepsilon_0 \leq \\ \leq e^{2(n-1)hL}e^{2hL}\varepsilon_0 = e^{2nhL}\varepsilon_0 = 
+			e^{2(b-a)L}\varepsilon_0 = e^{2(b-a)L}|\Delta y_0|
+		\end{gathered}		
+	\end{equation}
+	
+	Таким образом, в отношении явного метода Адамса 2 порядка можно сделать аналогичный вывод.
+	
+	Ожидается, что оба исследуемых метода устойчивы по начальному условию.
 	
 	\section{Контрольные тесты.}
 	
@@ -370,7 +471,7 @@
 	\begin{figure}[H]\centering
 		\includegraphics[width=.49\textwidth]{err_on_dyplus}
 		\includegraphics[width=.49\textwidth]{err_on_dyminus}
-		\caption{Зависимости бесконечной нормы погрешности решения от возмущения начального условия вида $y(1) = 1.0+\Delta y_0$ (слева) и $y(1) = 1.0-\Delta y_0$ (справа).}\label{fig:err_on_dy}
+		\caption{Зависимости бесконечной нормы погрешности решения c шагом 0.1 от возмущения начального условия вида $y(1) = 1.0+\Delta y_0$ (слева) и $y(1) = 1.0-\Delta y_0$ (справа).}\label{fig:err_on_dy}
 	\end{figure}
 
 	На графиках исследуемой зависимости видно, что для обоих методов имеет место асимптота при $\Delta y_0 \rightarrow 0$, притом равная погрешности соответствующих методов для значения шага $0.1$, приведенной на рисунке \ref{fig:err}. Для $\Delta y_0 \leq 10^{-3}$ отклонение погрешности от асимптоты незначительное. 
@@ -391,6 +492,16 @@
 	На рисунке \ref{fig:disturbed} видно, что благодаря возмущению начального условия вида $y(1)=1.0 + 0.1$, решение "поднялось"\ вверх и это обстоятельство компенсирует недостаточную скорость роста численного решения. Так для метода Адамса минимум зависимости погрешности от возмущения начального условия расположен близко к точке $\Delta y_0 = 10^{-1}$ и численное решение задачи с возмущенным начальным условием пересекает точное, а погрешность проходит через нуль. Глобальная погрешность за счет возмущения начального условия уменьшилась в $3/0.5=6$ раз.
 	
 	Для модифицированного метода Эйлера возмущение $\Delta y_0 = 10^{-1}$ в соответствии с рисунком \ref{fig:err_on_dy} оказывается несколько избыточным и для такого возмущения численное решение целиком лежит выше точного, однако глобальная погрешность по модулю также оказалась меньше, чем глобальная погрешность решения невозмущенной задачи.
+	
+	Вышеприведенный анализ подтверждает справедливость гипотезы о причине возникновения минимума глобальной погрешности при внесении положительного возмущения в начальное условие. Однако, зависимость была исследована для шага $0.1$, при котором вид зависимости погрешности обоих исследуемых методов от шага далек от асимптотического $Ch^2$. Чтобы убедиться, что это обстоятельство не влияет на вид исследованной зависимости, были также построены графики зависимости глобальной погрешности от возмущения начального условия (положительного) для шагов $10^{-3}$ и $10^{-5}$. Графики приведены на рисунке \ref{fig:disturbed_lowh}.
+	
+	\begin{figure}[H]
+		\includegraphics[width=.49\textwidth]{err_on_dyplus_lowh}
+		\includegraphics[width=.49\textwidth]{err_on_dyplus_verylowh}
+		\caption{Зависимости бесконечной нормы погрешности решения c шагом $10^{-3}$ (слева) и с шагом $10^{-5}$ (справа) от возмущения начального условия вида $y(1) = 1.0+\Delta y_0$.}\label{fig:disturbed_lowh}
+	\end{figure}
+	
+	На графиках для меньших значений шага видим, что характер зависимости остался прежним несмотря на значительно меньший шаг, при котором глобальная погрешность имеет асимптотический вид. Уменьшение шага сопровождается лишь уменьшением погрешности решения невозмущенной задачи (асимптоты зависимости погрешности возмущенной задачи от возмущения начального условия) и сдвигом точки локального минимума в сторону меньшего возмущения. В точке минимума погрешность все так же оказывается на порядок меньше, чем погрешность решения невозмущенной задачи.
 	
 	\section{Выводы.}
 	

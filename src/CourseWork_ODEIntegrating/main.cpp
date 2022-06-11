@@ -78,6 +78,12 @@ int main() {
         // lucky disturbance case
         WriteODESolutions(ROOT"csv/ans_Adams_disturbed", AdamsODE, ode, y0 + 0.1, a, b, { 10 });
         WriteODESolutions(ROOT"csv/ans_Euler_disturbed", ModEulerODE, ode, y0 + 0.1, a, b, { 10 });
+
+        // from review: lower h error on dy required
+        WriteErrorOnDy(ROOT"csv/err_on_dyplus_Adams_lowh.csv", AdamsODE, y, ode, y0, a, b, 1'000, dy0, 200, Sign::Plus);
+        WriteErrorOnDy(ROOT"csv/err_on_dyplus_Euler_lowh.csv", ModEulerODE, y, ode, y0, a, b, 1'000, dy0, 200, Sign::Plus);
+        WriteErrorOnDy(ROOT"csv/err_on_dyplus_Adams_verylowh.csv", AdamsODE, y, ode, y0, a, b, 100'000, dy0, 280, Sign::Plus);
+        WriteErrorOnDy(ROOT"csv/err_on_dyplus_Euler_verylowh.csv", ModEulerODE, y, ode, y0, a, b, 100'000, dy0, 280, Sign::Plus);
     }
     catch (const string& err) {
         cout << "Error occured:" << endl << err << endl;
